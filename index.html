@@ -7,9 +7,11 @@
 
 <meta name="viewport"
       content="width=device-width,
-               initial-scale=1.0">
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
 
-<title>GPSAgri Camera V2.1</title>
+<title>GPSAgri V3.2 Path Detection</title>
 
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 
@@ -20,434 +22,904 @@
 }
 
 body {
+
     margin: 0;
+
     background: #101820;
+
     color: white;
+
     font-family: Arial, sans-serif;
-    text-align: center;
+
+    touch-action: manipulation;
+
 }
 
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
 .header {
+
     background: #173b22;
-    padding: 15px;
+
+    padding: 12px;
+
+    text-align: center;
+
 }
 
 .header h1 {
+
     margin: 0;
+
     color: #7CFF7C;
+
+    font-size: 24px;
+
 }
 
-.status {
-    margin-top: 8px;
+.subtitle {
+
+    margin-top: 5px;
+
+    color: #b9e8b9;
+
+    font-size: 13px;
+
 }
 
-.idBox {
-    margin: 15px;
-    padding: 15px;
-    background: #202b34;
-    border-radius: 12px;
+
+/* =====================================================
+   CONNECTION
+   ===================================================== */
+
+.connection {
+
+    padding: 12px;
+
+    background: #1c252d;
+
 }
 
-.peerId {
-    margin-top: 8px;
-    font-size: 21px;
-    font-weight: bold;
-    color: #00e5ff;
-    word-break: break-all;
-}
+input {
 
-.videoContainer {
     width: 100%;
-    max-width: 900px;
-    margin: auto;
-    background: black;
-}
 
-video {
-    width: 100%;
-    display: block;
-    background: black;
+    padding: 12px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    font-size: 16px;
+
+    margin-bottom: 8px;
+
 }
 
 button {
+
     border: none;
-    border-radius: 8px;
-    padding: 13px 20px;
-    margin: 6px;
+
+    border-radius: 9px;
+
+    padding: 12px 16px;
+
+    margin: 4px;
+
     font-size: 16px;
+
     font-weight: bold;
+
 }
 
-.start {
+.connect {
+
+    width: 100%;
+
     background: #00c853;
+
     color: white;
+
+}
+
+
+/* =====================================================
+   VIDEO
+   ===================================================== */
+
+.videoArea {
+
+    position: relative;
+
+    width: 100%;
+
+    max-width: 900px;
+
+    margin: auto;
+
+    background: black;
+
+    overflow: hidden;
+
+}
+
+#remoteVideo {
+
+    width: 100%;
+
+    display: block;
+
+    background: black;
+
+}
+
+
+/* =====================================================
+   PATH CANVAS
+   ===================================================== */
+
+#overlayCanvas {
+
+    position: absolute;
+
+    left: 0;
+
+    top: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    pointer-events: none;
+
+}
+
+
+/* =====================================================
+   STATUS
+   ===================================================== */
+
+.panel {
+
+    margin: 10px;
+
+    padding: 12px;
+
+    background: #151d24;
+
+    border-radius: 10px;
+
+    text-align: center;
+
+}
+
+.statusTitle {
+
+    font-size: 14px;
+
+    color: #aaa;
+
+}
+
+.statusValue {
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    margin-top: 5px;
+
+}
+
+.green {
+
+    color: #00e676;
+
+}
+
+.red {
+
+    color: #ff5252;
+
+}
+
+.yellow {
+
+    color: #ffca28;
+
+}
+
+.blue {
+
+    color: #00e5ff;
+
+}
+
+
+/* =====================================================
+   INFO
+   ===================================================== */
+
+.info {
+
+    padding: 12px;
+
+    font-size: 13px;
+
+    background: #151d24;
+
+    margin: 10px;
+
+    border-radius: 8px;
+
+    line-height: 1.5;
+
+}
+
+
+/* =====================================================
+   CONTROLS
+   ===================================================== */
+
+.control {
+
+    margin: 10px;
+
+    padding: 12px;
+
+    background: #151d24;
+
+    border-radius: 10px;
+
+}
+
+.control button {
+
+    background: #424242;
+
+    color: white;
+
 }
 
 .stop {
-    background: #d50000;
-    color: white;
+
+    background: #d50000 !important;
+
 }
 
-.log {
-    margin: 15px;
-    padding: 12px;
-    background: #151d24;
-    border-radius: 10px;
-    font-size: 13px;
+
+/* =====================================================
+   SLIDER
+   ===================================================== */
+
+.sliderArea {
+
+    padding: 10px;
+
+}
+
+.sliderArea input {
+
+    width: 100%;
+
+}
+
+
+/* =====================================================
+   HIDDEN PROCESSING CANVAS
+   ===================================================== */
+
+#processCanvas {
+
+    display: none;
+
 }
 
 </style>
 
 </head>
 
+
 <body>
+
+
+<!-- =====================================================
+     HEADER
+     ===================================================== -->
 
 <div class="header">
 
-<h1>🚜 GPSAgri V2.1 Camera</h1>
+    <h1>🚜 GPSAgri V3.2</h1>
 
-<div class="status" id="status">
-Connecting to PeerJS...
-</div>
-
-</div>
-
-
-<div class="idBox">
-
-<div>CAMERA PEER ID</div>
-
-<div class="peerId" id="peerId">
-Connecting...
-</div>
-
-<div style="margin-top:8px;">
-Give this ID to Phone 2
-</div>
+    <div class="subtitle">
+        Automatic Crop-Row / Path Detection
+    </div>
 
 </div>
 
 
-<div class="videoContainer">
+<!-- =====================================================
+     CONNECTION
+     ===================================================== -->
 
-<video
-    id="cameraVideo"
-    autoplay
-    playsinline
-    muted>
-</video>
+<div class="connection">
 
-</div>
+    <input
+        id="cameraPeerId"
+        type="text"
+        placeholder="Enter Phone 1 Camera Peer ID">
 
+    <button
+        class="connect"
+        onclick="connectCamera()">
 
-<div>
+        📷 CONNECT PHONE 1 CAMERA
 
-<button
-    class="start"
-    onclick="startCamera()">
-
-📷 START CAMERA
-
-</button>
-
-
-<button
-    class="stop"
-    onclick="stopCamera()">
-
-⛔ STOP CAMERA
-
-</button>
+    </button>
 
 </div>
 
 
-<div class="log" id="log">
+<!-- =====================================================
+     VIDEO
+     ===================================================== -->
 
-Waiting...
+<div
+    class="videoArea"
+    id="videoArea">
+
+    <video
+        id="remoteVideo"
+        autoplay
+        playsinline>
+    </video>
+
+    <canvas
+        id="overlayCanvas">
+    </canvas>
 
 </div>
+
+
+<!-- =====================================================
+     PATH STATUS
+     ===================================================== -->
+
+<div class="panel">
+
+    <div class="statusTitle">
+        PATH STATUS
+    </div>
+
+    <div
+        id="pathStatus"
+        class="statusValue red">
+
+        WAITING
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PATH POSITION
+     ===================================================== -->
+
+<div class="panel">
+
+    <div class="statusTitle">
+        PATH CENTER
+    </div>
+
+    <div
+        id="pathPosition"
+        class="statusValue blue">
+
+        ---
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     STEERING
+     ===================================================== -->
+
+<div class="panel">
+
+    <div class="statusTitle">
+        FUTURE STEERING VALUE
+    </div>
+
+    <div
+        id="steeringValue"
+        class="statusValue blue">
+
+        0.00
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     CONFIDENCE
+     ===================================================== -->
+
+<div class="panel">
+
+    <div class="statusTitle">
+        PATH CONFIDENCE
+    </div>
+
+    <div
+        id="confidence"
+        class="statusValue yellow">
+
+        0%
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     INFORMATION
+     ===================================================== -->
+
+<div
+    id="info"
+    class="info">
+
+    Connecting to PeerJS...
+
+</div>
+
+
+<!-- =====================================================
+     MANUAL DETECTION CONTROLS
+     ===================================================== -->
+
+<div class="control">
+
+    <button onclick="startDetection()">
+
+        ▶ START DETECTION
+
+    </button>
+
+    <button onclick="stopDetection()">
+
+        ⏹ STOP DETECTION
+
+    </button>
+
+    <button
+        class="stop"
+        onclick="clearDisplay()">
+
+        ⛔ CLEAR
+
+    </button>
+
+</div>
+
+
+<!-- =====================================================
+     DETECTION SETTINGS
+     ===================================================== -->
+
+<div class="control">
+
+    <b>Green Sensitivity</b>
+
+    <div class="sliderArea">
+
+        <input
+            id="greenThreshold"
+            type="range"
+            min="50"
+            max="180"
+            value="95"
+            oninput="updateThreshold()">
+
+        <div id="thresholdValue">
+            95
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PROCESSING CANVAS
+     ===================================================== -->
+
+<canvas
+    id="processCanvas"
+    width="320"
+    height="240">
+</canvas>
 
 
 <script>
 
-let peer;
 
-let cameraStream = null;
+// =====================================================
+// PEERJS
+// =====================================================
 
+let peer =
+    new Peer();
 
-const statusText =
-document.getElementById("status");
+let myPeerId =
+    null;
 
-const peerIdText =
-document.getElementById("peerId");
+let dataConnection =
+    null;
 
-const video =
-document.getElementById("cameraVideo");
-
-const logBox =
-document.getElementById("log");
+let videoCall =
+    null;
 
 
 // =====================================================
-// LOG
+// VIDEO
 // =====================================================
 
-function log(message)
-{
-    console.log(message);
-
-    logBox.innerText =
-        new Date().toLocaleTimeString()
-        + " - "
-        + message;
-}
+const remoteVideo =
+    document.getElementById(
+        "remoteVideo"
+    );
 
 
 // =====================================================
-// CREATE PEER
+// VIDEO AREA
 // =====================================================
 
-peer = new Peer();
+const videoArea =
+    document.getElementById(
+        "videoArea"
+    );
+
+
+// =====================================================
+// OVERLAY
+// =====================================================
+
+const overlayCanvas =
+    document.getElementById(
+        "overlayCanvas"
+    );
+
+const overlayCtx =
+    overlayCanvas.getContext(
+        "2d"
+    );
+
+
+// =====================================================
+// PROCESSING CANVAS
+// =====================================================
+
+const processCanvas =
+    document.getElementById(
+        "processCanvas"
+    );
+
+const processCtx =
+    processCanvas.getContext(
+        "2d",
+        {
+            willReadFrequently: true
+        }
+    );
+
+
+// =====================================================
+// STATUS ELEMENTS
+// =====================================================
+
+const pathStatus =
+    document.getElementById(
+        "pathStatus"
+    );
+
+const pathPosition =
+    document.getElementById(
+        "pathPosition"
+    );
+
+const steeringValue =
+    document.getElementById(
+        "steeringValue"
+    );
+
+const confidenceText =
+    document.getElementById(
+        "confidence"
+    );
+
+const info =
+    document.getElementById(
+        "info"
+    );
+
+
+// =====================================================
+// SETTINGS
+// =====================================================
+
+let greenThreshold =
+    95;
+
+
+// =====================================================
+// DETECTION
+// =====================================================
+
+let detectionRunning =
+    false;
+
+let detectionTimer =
+    null;
 
 
 // =====================================================
 // PEER OPEN
 // =====================================================
 
-peer.on("open", function(id)
-{
-
-    peerIdText.innerText = id;
-
-    statusText.innerText =
-        "🟢 PeerJS connected";
-
-    log("Camera Peer ID created.");
-
-});
-
-
-// =====================================================
-// DATA CONNECTION FROM PHONE 2
-// =====================================================
-
-peer.on("connection", function(conn)
-{
-
-    log("Phone 2 connected.");
-
-    conn.on("open", function()
+peer.on(
+    "open",
+    function(id)
     {
 
-        log(
-            "Controller connection opened."
-        );
+        myPeerId =
+            id;
 
-    });
+        info.innerHTML =
+            "🟢 PeerJS connected.<br>" +
+            "Controller ID: <b>" +
+            id +
+            "</b><br>" +
+            "Enter Phone 1 camera ID.";
 
-
-    conn.on("data", function(data)
-    {
-
-        console.log(
-            "Received:",
-            data
-        );
-
-
-        if (
-            data &&
-            data.type === "request-video"
-        )
-        {
-
-            const controllerPeerId =
-                data.controllerPeerId;
-
-
-            log(
-                "Video requested."
-            );
-
-
-            if (!cameraStream)
-            {
-
-                log(
-                    "Camera is not running."
-                );
-
-                return;
-
-            }
-
-
-            // =========================================
-            // SEND CAMERA TO PHONE 2
-            // =========================================
-
-            const call =
-                peer.call(
-                    controllerPeerId,
-                    cameraStream
-                );
-
-
-            call.on("error", function(error)
-            {
-
-                log(
-                    "Video error: "
-                    + error.type
-                );
-
-            });
-
-
-            log(
-                "Camera stream sent."
-            );
-
-        }
-
-    });
-
-
-    conn.on("close", function()
-    {
-
-        log(
-            "Phone 2 disconnected."
-        );
-
-    });
-
-});
+    }
+);
 
 
 // =====================================================
 // PEER ERROR
 // =====================================================
 
-peer.on("error", function(error)
-{
-
-    console.error(error);
-
-    statusText.innerText =
-        "🔴 PeerJS error";
-
-    log(
-        "PeerJS error: "
-        + error.type
-    );
-
-});
-
-
-// =====================================================
-// START CAMERA
-// =====================================================
-
-async function startCamera()
-{
-
-    try
-    {
-
-        if (cameraStream)
-        {
-
-            log(
-                "Camera already running."
-            );
-
-            return;
-
-        }
-
-
-        log(
-            "Requesting rear camera..."
-        );
-
-
-        cameraStream =
-            await navigator.mediaDevices
-            .getUserMedia({
-
-                video:
-                {
-                    facingMode:
-                    {
-                        ideal:
-                        "environment"
-                    },
-
-                    width:
-                    {
-                        ideal:
-                        1280
-                    },
-
-                    height:
-                    {
-                        ideal:
-                        720
-                    },
-
-                    frameRate:
-                    {
-                        ideal:
-                        30,
-
-                        max:
-                        30
-                    }
-                },
-
-                audio: false
-
-            });
-
-
-        video.srcObject =
-            cameraStream;
-
-
-        await video.play();
-
-
-        statusText.innerText =
-            "🟢 Camera running";
-
-
-        log(
-            "Rear camera started."
-        );
-
-    }
-
-    catch(error)
+peer.on(
+    "error",
+    function(error)
     {
 
         console.error(error);
 
-        statusText.innerText =
-            "🔴 Camera failed";
+        info.innerHTML =
+            "🔴 PeerJS error: " +
+            error.type;
+
+    }
+);
 
 
-        log(
-            "Camera error: "
-            + error.message
+// =====================================================
+// RECEIVE CAMERA CALL
+// =====================================================
+
+peer.on(
+    "call",
+    function(call)
+    {
+
+        videoCall =
+            call;
+
+
+        info.innerHTML =
+            "📡 Camera call received...";
+
+
+        call.answer();
+
+
+        call.on(
+            "stream",
+            function(stream)
+            {
+
+                remoteVideo.srcObject =
+                    stream;
+
+
+                remoteVideo.play()
+                .catch(
+                    function(error)
+                    {
+                        console.log(error);
+                    }
+                );
+
+
+                info.innerHTML =
+                    "🟢 LIVE CAMERA CONNECTED<br>" +
+                    "Ready for path detection.";
+
+
+                resizeOverlay();
+
+
+                startDetection();
+
+            }
         );
 
+
+        call.on(
+            "close",
+            function()
+            {
+
+                stopDetection();
+
+
+                remoteVideo.srcObject =
+                    null;
+
+
+                info.innerHTML =
+                    "🔴 Camera disconnected.";
+
+            }
+        );
+
+
+        call.on(
+            "error",
+            function(error)
+            {
+
+                stopDetection();
+
+
+                info.innerHTML =
+                    "🔴 Video error: " +
+                    error.type;
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// CONNECT TO PHONE 1
+// =====================================================
+
+function connectCamera()
+{
+
+    const cameraId =
+        document
+        .getElementById(
+            "cameraPeerId"
+        )
+        .value
+        .trim();
+
+
+    if (!cameraId)
+    {
 
         alert(
-            "Camera access failed:\n\n"
-            + error.message
+            "Enter Phone 1 Camera Peer ID."
         );
+
+        return;
+
+    }
+
+
+    if (!myPeerId)
+    {
+
+        alert(
+            "PeerJS is still connecting."
+        );
+
+        return;
+
+    }
+
+
+    info.innerHTML =
+        "Connecting to Phone 1...";
+
+
+    dataConnection =
+        peer.connect(
+            cameraId,
+            {
+                reliable: false
+            }
+        );
+
+
+    dataConnection.on(
+        "open",
+        function()
+        {
+
+            info.innerHTML =
+                "🟢 Connected to Phone 1.<br>" +
+                "Requesting live video...";
+
+
+            dataConnection.send({
+
+                type:
+                    "request-video",
+
+                controllerPeerId:
+                    myPeerId
+
+            });
+
+        }
+    );
+
+
+    dataConnection.on(
+        "error",
+        function(error)
+        {
+
+            console.error(error);
+
+            info.innerHTML =
+                "🔴 Data connection error.";
+
+        }
+    );
+
+}
+
+
+// =====================================================
+// RESIZE OVERLAY
+// =====================================================
+
+function resizeOverlay()
+{
+
+    const width =
+        remoteVideo.clientWidth;
+
+    const height =
+        remoteVideo.clientHeight;
+
+
+    if (
+        width > 0 &&
+        height > 0
+    )
+    {
+
+        overlayCanvas.width =
+            width;
+
+        overlayCanvas.height =
+            height;
 
     }
 
@@ -455,40 +927,997 @@ async function startCamera()
 
 
 // =====================================================
-// STOP CAMERA
+// START DETECTION
 // =====================================================
 
-function stopCamera()
+function startDetection()
 {
 
-    if (!cameraStream)
+    if (detectionRunning)
     {
         return;
     }
 
 
-    cameraStream
-    .getTracks()
-    .forEach(function(track)
+    detectionRunning =
+        true;
+
+
+    detectionTimer =
+        setInterval(
+            detectPath,
+            120
+        );
+
+
+    pathStatus.innerText =
+        "SCANNING";
+
+    pathStatus.className =
+        "statusValue yellow";
+
+
+    info.innerHTML =
+        "🧠 Path detection running...";
+
+}
+
+
+// =====================================================
+// STOP DETECTION
+// =====================================================
+
+function stopDetection()
+{
+
+    detectionRunning =
+        false;
+
+
+    if (detectionTimer)
     {
-        track.stop();
-    });
+
+        clearInterval(
+            detectionTimer
+        );
+
+        detectionTimer =
+            null;
+
+    }
+
+}
 
 
-    cameraStream = null;
+// =====================================================
+// UPDATE GREEN THRESHOLD
+// =====================================================
 
-    video.srcObject = null;
+function updateThreshold()
+{
+
+    greenThreshold =
+        parseInt(
+            document
+            .getElementById(
+                "greenThreshold"
+            )
+            .value
+        );
 
 
-    statusText.innerText =
-        "⚪ Camera stopped";
+    document
+    .getElementById(
+        "thresholdValue"
+    )
+    .innerText =
+        greenThreshold;
+
+}
 
 
-    log(
-        "Camera stopped."
+// =====================================================
+// PATH DETECTION
+// =====================================================
+
+function detectPath()
+{
+
+    if (!detectionRunning)
+    {
+        return;
+    }
+
+
+    if (
+        remoteVideo.readyState < 2
+    )
+    {
+        return;
+    }
+
+
+    const width =
+        processCanvas.width;
+
+    const height =
+        processCanvas.height;
+
+
+    // =================================================
+    // DRAW VIDEO
+    // =================================================
+
+    processCtx.drawImage(
+        remoteVideo,
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    const image =
+        processCtx.getImageData(
+            0,
+            0,
+            width,
+            height
+        );
+
+
+    const pixels =
+        image.data;
+
+
+    // =================================================
+    // ROI
+    //
+    // Use lower 55% of image.
+    //
+    // This is where the road/path normally appears.
+    // =================================================
+
+    const roiStartY =
+        Math.floor(
+            height * 0.45
+        );
+
+
+    const roiEndY =
+        height;
+
+
+    // =================================================
+    // Divide image into columns
+    // =================================================
+
+    const columns =
+        16;
+
+
+    const columnWidth =
+        width / columns;
+
+
+    let greenColumns =
+        new Array(columns)
+        .fill(0);
+
+
+    let totalGreen =
+        0;
+
+
+    // =================================================
+    // SCAN GREEN VEGETATION
+    // =================================================
+
+    for (
+        let y = roiStartY;
+        y < roiEndY;
+        y += 2
+    )
+    {
+
+        for (
+            let x = 0;
+            x < width;
+            x += 2
+        )
+        {
+
+            const index =
+                (
+                    y * width +
+                    x
+                ) * 4;
+
+
+            const r =
+                pixels[index];
+
+            const g =
+                pixels[index + 1];
+
+            const b =
+                pixels[index + 2];
+
+
+            // =================================================
+            // GREEN DETECTION
+            // =================================================
+
+            const isGreen =
+                g > greenThreshold &&
+                g > r * 1.10 &&
+                g > b * 1.05;
+
+
+            if (isGreen)
+            {
+
+                const column =
+                    Math.floor(
+                        x / columnWidth
+                    );
+
+
+                if (
+                    column >= 0 &&
+                    column < columns
+                )
+                {
+
+                    greenColumns[column]++;
+
+                    totalGreen++;
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    // =================================================
+    // FIND GREEN BOUNDARIES
+    // =================================================
+
+    const columnArea =
+        (
+            (roiEndY - roiStartY)
+            / 2
+        ) *
+        (
+            columnWidth / 2
+        );
+
+
+    const minimumColumnGreen =
+        columnArea * 0.05;
+
+
+    let leftBoundary =
+        -1;
+
+    let rightBoundary =
+        -1;
+
+
+    // =================================================
+    // FIND LEFT VEGETATION
+    // =================================================
+
+    for (
+        let i = 0;
+        i < columns / 2;
+        i++
+    )
+    {
+
+        if (
+            greenColumns[i] >
+            minimumColumnGreen
+        )
+        {
+
+            leftBoundary =
+                i;
+
+        }
+
+    }
+
+
+    // =================================================
+    // FIND RIGHT VEGETATION
+    // =================================================
+
+    for (
+        let i = columns - 1;
+        i >= columns / 2;
+        i--
+    )
+    {
+
+        if (
+            greenColumns[i] >
+            minimumColumnGreen
+        )
+        {
+
+            rightBoundary =
+                i;
+
+        }
+
+    }
+
+
+    // =================================================
+    // NO VEGETATION
+    // =================================================
+
+    if (
+        leftBoundary === -1 &&
+        rightBoundary === -1
+    )
+    {
+
+        noPath();
+
+        return;
+
+    }
+
+
+    // =================================================
+    // CALCULATE PATH CENTER
+    // =================================================
+
+    let pathCenter;
+
+
+    if (
+        leftBoundary !== -1 &&
+        rightBoundary !== -1
+    )
+    {
+
+        const leftX =
+            (
+                leftBoundary +
+                0.5
+            ) *
+            columnWidth;
+
+
+        const rightX =
+            (
+                rightBoundary +
+                0.5
+            ) *
+            columnWidth;
+
+
+        pathCenter =
+            (
+                leftX +
+                rightX
+            ) / 2;
+
+    }
+
+
+    else if (
+        leftBoundary !== -1
+    )
+    {
+
+        // Only left vegetation visible.
+
+        // Assume path is to its right.
+
+        const leftX =
+            (
+                leftBoundary +
+                0.5
+            ) *
+            columnWidth;
+
+
+        pathCenter =
+            leftX +
+            width * 0.25;
+
+    }
+
+
+    else
+    {
+
+        // Only right vegetation visible.
+
+        // Assume path is to its left.
+
+        const rightX =
+            (
+                rightBoundary +
+                0.5
+            ) *
+            columnWidth;
+
+
+        pathCenter =
+            rightX -
+            width * 0.25;
+
+    }
+
+
+    pathCenter =
+        Math.max(
+            0,
+            Math.min(
+                width,
+                pathCenter
+            )
+        );
+
+
+    // =================================================
+    // NORMALIZED STEERING
+    // =================================================
+
+    let x =
+        (
+            pathCenter /
+            width
+        ) * 2 - 1;
+
+
+    x =
+        Math.max(
+            -1,
+            Math.min(
+                1,
+                x
+            )
+        );
+
+
+    // =================================================
+    // CONFIDENCE
+    // =================================================
+
+    let confidence =
+        0;
+
+
+    if (
+        leftBoundary !== -1
+    )
+    {
+
+        confidence += 35;
+
+    }
+
+
+    if (
+        rightBoundary !== -1
+    )
+    {
+
+        confidence += 35;
+
+    }
+
+
+    if (
+        totalGreen > 300
+    )
+    {
+
+        confidence += 30;
+
+    }
+
+
+    confidence =
+        Math.min(
+            100,
+            confidence
+        );
+
+
+    // =================================================
+    // DISPLAY
+    // =================================================
+
+    showPath(
+        leftBoundary,
+        rightBoundary,
+        pathCenter,
+        roiStartY,
+        width,
+        height
+    );
+
+
+    updateStatus(
+        x,
+        confidence
     );
 
 }
+
+
+// =====================================================
+// NO PATH
+// =====================================================
+
+function noPath()
+{
+
+    pathStatus.innerText =
+        "PATH LOST";
+
+    pathStatus.className =
+        "statusValue red";
+
+
+    pathPosition.innerText =
+        "---";
+
+
+    steeringValue.innerText =
+        "STOP";
+
+
+    confidenceText.innerText =
+        "0%";
+
+
+    clearOverlay();
+
+
+    info.innerHTML =
+        "🔴 No clear crop/path boundary detected.";
+
+}
+
+
+// =====================================================
+// UPDATE STATUS
+// =====================================================
+
+function updateStatus(
+    x,
+    confidence
+)
+{
+
+    const percentage =
+        Math.round(
+            x * 100
+        );
+
+
+    steeringValue.innerText =
+        x.toFixed(2);
+
+
+    confidenceText.innerText =
+        confidence + "%";
+
+
+    // =================================================
+    // CENTER
+    // =================================================
+
+    if (
+        Math.abs(percentage) < 8
+    )
+    {
+
+        pathPosition.innerText =
+            "CENTER";
+
+
+        pathStatus.innerText =
+            "PATH FOUND";
+
+
+        pathStatus.className =
+            "statusValue green";
+
+    }
+
+
+    // =================================================
+    // LEFT
+    // =================================================
+
+    else if (
+        percentage < 0
+    )
+    {
+
+        pathPosition.innerText =
+            "LEFT " +
+            Math.abs(percentage) +
+            "%";
+
+
+        pathStatus.innerText =
+            "PATH FOUND";
+
+
+        pathStatus.className =
+            "statusValue green";
+
+    }
+
+
+    // =================================================
+    // RIGHT
+    // =================================================
+
+    else
+    {
+
+        pathPosition.innerText =
+            "RIGHT " +
+            percentage +
+            "%";
+
+
+        pathStatus.innerText =
+            "PATH FOUND";
+
+
+        pathStatus.className =
+            "statusValue green";
+
+    }
+
+
+    info.innerHTML =
+        "🌱 Vegetation boundaries detected.<br>" +
+        "Estimated path center: " +
+        percentage +
+        "%<br>" +
+        "Confidence: " +
+        confidence +
+        "%<br>" +
+        "⚠ Detection-only mode — motors are NOT controlled.";
+
+}
+
+
+// =====================================================
+// DRAW PATH
+// =====================================================
+
+function showPath(
+    leftBoundary,
+    rightBoundary,
+    pathCenter,
+    roiStartY,
+    width,
+    height
+)
+{
+
+    resizeOverlay();
+
+
+    const displayWidth =
+        overlayCanvas.width;
+
+    const displayHeight =
+        overlayCanvas.height;
+
+
+    overlayCtx.clearRect(
+        0,
+        0,
+        displayWidth,
+        displayHeight
+    );
+
+
+    // =================================================
+    // ROI LINE
+    // =================================================
+
+    const roiY =
+        (
+            roiStartY /
+            height
+        ) *
+        displayHeight;
+
+
+    overlayCtx.beginPath();
+
+    overlayCtx.moveTo(
+        0,
+        roiY
+    );
+
+    overlayCtx.lineTo(
+        displayWidth,
+        roiY
+    );
+
+    overlayCtx.strokeStyle =
+        "yellow";
+
+    overlayCtx.lineWidth =
+        2;
+
+    overlayCtx.stroke();
+
+
+    // =================================================
+    // PATH CENTER
+    // =================================================
+
+    const centerX =
+        (
+            pathCenter /
+            width
+        ) *
+        displayWidth;
+
+
+    overlayCtx.beginPath();
+
+    overlayCtx.moveTo(
+        centerX,
+        roiY
+    );
+
+    overlayCtx.lineTo(
+        centerX,
+        displayHeight
+    );
+
+    overlayCtx.strokeStyle =
+        "#00ff00";
+
+    overlayCtx.lineWidth =
+        5;
+
+    overlayCtx.stroke();
+
+
+    // =================================================
+    // CAMERA CENTER
+    // =================================================
+
+    const cameraCenter =
+        displayWidth / 2;
+
+
+    overlayCtx.beginPath();
+
+    overlayCtx.moveTo(
+        cameraCenter,
+        roiY
+    );
+
+    overlayCtx.lineTo(
+        cameraCenter,
+        displayHeight
+    );
+
+    overlayCtx.strokeStyle =
+        "#00e5ff";
+
+    overlayCtx.lineWidth =
+        2;
+
+    overlayCtx.setLineDash(
+        [8, 8]
+    );
+
+    overlayCtx.stroke();
+
+    overlayCtx.setLineDash([]);
+
+
+    // =================================================
+    // PATH REGION
+    // =================================================
+
+    if (
+        leftBoundary !== -1 &&
+        rightBoundary !== -1
+    )
+    {
+
+        const leftX =
+            (
+                (
+                    leftBoundary +
+                    1
+                ) /
+                16
+            ) *
+            displayWidth;
+
+
+        const rightX =
+            (
+                rightBoundary /
+                16
+            ) *
+            displayWidth;
+
+
+        overlayCtx.fillStyle =
+            "rgba(0,255,0,0.15)";
+
+
+        overlayCtx.fillRect(
+
+            leftX,
+
+            roiY,
+
+            rightX - leftX,
+
+            displayHeight - roiY
+
+        );
+
+    }
+
+
+    // =================================================
+    // CENTER MARKER
+    // =================================================
+
+    overlayCtx.beginPath();
+
+    overlayCtx.arc(
+        centerX,
+        (
+            roiY +
+            displayHeight
+        ) / 2,
+        10,
+        0,
+        Math.PI * 2
+    );
+
+
+    overlayCtx.fillStyle =
+        "#00ff00";
+
+    overlayCtx.fill();
+
+
+    overlayCtx.strokeStyle =
+        "white";
+
+    overlayCtx.lineWidth =
+        2;
+
+    overlayCtx.stroke();
+
+
+    // =================================================
+    // LABEL
+    // =================================================
+
+    overlayCtx.font =
+        "bold 16px Arial";
+
+    overlayCtx.fillStyle =
+        "#00ff00";
+
+    overlayCtx.fillText(
+        "PATH CENTER",
+        Math.max(
+            5,
+            centerX - 50
+        ),
+        roiY + 25
+    );
+
+}
+
+
+// =====================================================
+// CLEAR OVERLAY
+// =====================================================
+
+function clearOverlay()
+{
+
+    overlayCtx.clearRect(
+        0,
+        0,
+        overlayCanvas.width,
+        overlayCanvas.height
+    );
+
+}
+
+
+// =====================================================
+// CLEAR DISPLAY
+// =====================================================
+
+function clearDisplay()
+{
+
+    stopDetection();
+
+    clearOverlay();
+
+
+    pathStatus.innerText =
+        "STOPPED";
+
+    pathStatus.className =
+        "statusValue red";
+
+
+    pathPosition.innerText =
+        "---";
+
+
+    steeringValue.innerText =
+        "0.00";
+
+
+    confidenceText.innerText =
+        "0%";
+
+
+    info.innerHTML =
+        "Detection stopped.";
+
+}
+
+
+// =====================================================
+// WINDOW RESIZE
+// =====================================================
+
+window.addEventListener(
+    "resize",
+    function()
+    {
+
+        resizeOverlay();
+
+    }
+);
+
+
+// =====================================================
+// VIDEO METADATA
+// =====================================================
+
+remoteVideo.addEventListener(
+    "loadedmetadata",
+    function()
+    {
+
+        resizeOverlay();
+
+    }
+);
+
 
 </script>
 
