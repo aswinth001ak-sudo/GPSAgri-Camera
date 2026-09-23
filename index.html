@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport"
       content="width=device-width,
                initial-scale=1.0,
                maximum-scale=1.0,
                user-scalable=no">
 
-<title>GPSAgri V3.2 Path Detection</title>
+<title>GPSAgri V3.2</title>
 
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 
@@ -19,357 +16,190 @@
 
 * {
     box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 body {
-
     margin: 0;
-
-    background: #101820;
-
+    background: #101010;
     color: white;
-
     font-family: Arial, sans-serif;
-
-    touch-action: manipulation;
-
+    overflow: hidden;
 }
-
-
-/* =====================================================
-   HEADER
-   ===================================================== */
 
 .header {
-
-    background: #173b22;
-
-    padding: 12px;
-
-    text-align: center;
-
+    height: 55px;
+    background: #151515;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    border-bottom: 1px solid #333;
 }
 
-.header h1 {
-
-    margin: 0;
-
-    color: #7CFF7C;
-
-    font-size: 24px;
-
-}
-
-.subtitle {
-
-    margin-top: 5px;
-
-    color: #b9e8b9;
-
-    font-size: 13px;
-
-}
-
-
-/* =====================================================
-   CONNECTION
-   ===================================================== */
-
-.connection {
-
-    padding: 12px;
-
-    background: #1c252d;
-
-}
-
-input {
-
-    width: 100%;
-
-    padding: 12px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    font-size: 16px;
-
-    margin-bottom: 8px;
-
-}
-
-button {
-
-    border: none;
-
-    border-radius: 9px;
-
-    padding: 12px 16px;
-
-    margin: 4px;
-
-    font-size: 16px;
-
+.title {
+    font-size: 20px;
     font-weight: bold;
-
 }
 
-.connect {
-
-    width: 100%;
-
-    background: #00c853;
-
-    color: white;
-
+.status {
+    font-size: 12px;
+    color: #00ff66;
 }
-
-
-/* =====================================================
-   VIDEO
-   ===================================================== */
 
 .videoArea {
-
     position: relative;
-
     width: 100%;
-
-    max-width: 900px;
-
-    margin: auto;
-
+    height: calc(100vh - 175px);
     background: black;
-
     overflow: hidden;
-
 }
 
 #remoteVideo {
-
-    width: 100%;
-
-    display: block;
-
-    background: black;
-
-}
-
-
-/* =====================================================
-   PATH CANVAS
-   ===================================================== */
-
-#overlayCanvas {
-
     position: absolute;
-
-    left: 0;
-
-    top: 0;
-
     width: 100%;
-
     height: 100%;
+    object-fit: cover;
+    background: black;
+}
 
+#pathCanvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+#infoCanvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
-
 }
 
-
-/* =====================================================
-   STATUS
-   ===================================================== */
-
-.panel {
-
-    margin: 10px;
-
-    padding: 12px;
-
-    background: #151d24;
-
-    border-radius: 10px;
-
-    text-align: center;
-
-}
-
-.statusTitle {
-
-    font-size: 14px;
-
-    color: #aaa;
-
-}
-
-.statusValue {
-
-    font-size: 22px;
-
-    font-weight: bold;
-
-    margin-top: 5px;
-
-}
-
-.green {
-
-    color: #00e676;
-
-}
-
-.red {
-
-    color: #ff5252;
-
-}
-
-.yellow {
-
-    color: #ffca28;
-
-}
-
-.blue {
-
-    color: #00e5ff;
-
-}
-
-
-/* =====================================================
-   INFO
-   ===================================================== */
-
-.info {
-
-    padding: 12px;
-
-    font-size: 13px;
-
-    background: #151d24;
-
-    margin: 10px;
-
+.peerBox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 10;
+    background: rgba(0,0,0,0.65);
+    padding: 10px;
     border-radius: 8px;
-
-    line-height: 1.5;
-
 }
 
-
-/* =====================================================
-   CONTROLS
-   ===================================================== */
-
-.control {
-
-    margin: 10px;
-
-    padding: 12px;
-
-    background: #151d24;
-
-    border-radius: 10px;
-
+.peerRow {
+    display: flex;
+    gap: 6px;
 }
 
-.control button {
+.peerRow input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+}
 
-    background: #424242;
-
+.peerRow button {
+    padding: 9px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #2196f3;
     color: white;
+    font-weight: bold;
+}
 
+.myPeer {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #aaa;
+}
+
+.controlPanel {
+    height: 120px;
+    background: #181818;
+    padding: 8px;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 7px;
+}
+
+button.control {
+    border: none;
+    border-radius: 8px;
+    padding: 13px 5px;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+}
+
+.draw {
+    background: #1976d2;
+}
+
+.clear {
+    background: #555;
+}
+
+.start {
+    background: #168a3a;
 }
 
 .stop {
-
-    background: #d50000 !important;
-
+    background: #c62828;
 }
 
-
-/* =====================================================
-   SLIDER
-   ===================================================== */
-
-.sliderArea {
-
-    padding: 10px;
-
+button:active {
+    transform: scale(0.97);
 }
 
-.sliderArea input {
-
-    width: 100%;
-
+.data {
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #bbb;
 }
 
+#steerValue {
+    color: #00ff66;
+    font-weight: bold;
+}
 
-/* =====================================================
-   HIDDEN PROCESSING CANVAS
-   ===================================================== */
-
-#processCanvas {
-
-    display: none;
-
+.mode {
+    color: #ffd740;
+    font-weight: bold;
 }
 
 </style>
-
 </head>
-
 
 <body>
 
-
-<!-- =====================================================
-     HEADER
-     ===================================================== -->
-
 <div class="header">
 
-    <h1>🚜 GPSAgri V3.2</h1>
+    <div class="title">
+        🚜 GPSAgri V3.2
+    </div>
 
-    <div class="subtitle">
-        Automatic Crop-Row / Path Detection
+    <div class="status" id="status">
+        DISCONNECTED
     </div>
 
 </div>
 
 
-<!-- =====================================================
-     CONNECTION
-     ===================================================== -->
-
-<div class="connection">
-
-    <input
-        id="cameraPeerId"
-        type="text"
-        placeholder="Enter Phone 1 Camera Peer ID">
-
-    <button
-        class="connect"
-        onclick="connectCamera()">
-
-        📷 CONNECT PHONE 1 CAMERA
-
-    </button>
-
-</div>
-
-
-<!-- =====================================================
-     VIDEO
-     ===================================================== -->
-
-<div
-    class="videoArea"
-    id="videoArea">
+<div class="videoArea">
 
     <video
         id="remoteVideo"
@@ -377,159 +207,29 @@ button {
         playsinline>
     </video>
 
-    <canvas
-        id="overlayCanvas">
-    </canvas>
 
-</div>
+    <canvas id="infoCanvas"></canvas>
 
-
-<!-- =====================================================
-     PATH STATUS
-     ===================================================== -->
-
-<div class="panel">
-
-    <div class="statusTitle">
-        PATH STATUS
-    </div>
-
-    <div
-        id="pathStatus"
-        class="statusValue red">
-
-        WAITING
-
-    </div>
-
-</div>
+    <canvas id="pathCanvas"></canvas>
 
 
-<!-- =====================================================
-     PATH POSITION
-     ===================================================== -->
+    <div class="peerBox">
 
-<div class="panel">
+        <div class="peerRow">
 
-    <div class="statusTitle">
-        PATH CENTER
-    </div>
+            <input
+                id="cameraId"
+                placeholder="Enter Phone 1 Camera Peer ID">
 
-    <div
-        id="pathPosition"
-        class="statusValue blue">
+            <button onclick="connectCamera()">
+                CONNECT
+            </button>
 
-        ---
+        </div>
 
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     STEERING
-     ===================================================== -->
-
-<div class="panel">
-
-    <div class="statusTitle">
-        FUTURE STEERING VALUE
-    </div>
-
-    <div
-        id="steeringValue"
-        class="statusValue blue">
-
-        0.00
-
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     CONFIDENCE
-     ===================================================== -->
-
-<div class="panel">
-
-    <div class="statusTitle">
-        PATH CONFIDENCE
-    </div>
-
-    <div
-        id="confidence"
-        class="statusValue yellow">
-
-        0%
-
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     INFORMATION
-     ===================================================== -->
-
-<div
-    id="info"
-    class="info">
-
-    Connecting to PeerJS...
-
-</div>
-
-
-<!-- =====================================================
-     MANUAL DETECTION CONTROLS
-     ===================================================== -->
-
-<div class="control">
-
-    <button onclick="startDetection()">
-
-        ▶ START DETECTION
-
-    </button>
-
-    <button onclick="stopDetection()">
-
-        ⏹ STOP DETECTION
-
-    </button>
-
-    <button
-        class="stop"
-        onclick="clearDisplay()">
-
-        ⛔ CLEAR
-
-    </button>
-
-</div>
-
-
-<!-- =====================================================
-     DETECTION SETTINGS
-     ===================================================== -->
-
-<div class="control">
-
-    <b>Green Sensitivity</b>
-
-    <div class="sliderArea">
-
-        <input
-            id="greenThreshold"
-            type="range"
-            min="50"
-            max="180"
-            value="95"
-            oninput="updateThreshold()">
-
-        <div id="thresholdValue">
-            95
+        <div class="myPeer">
+            Phone 2 Peer ID:
+            <span id="myPeerId">Creating...</span>
         </div>
 
     </div>
@@ -537,333 +237,349 @@ button {
 </div>
 
 
-<!-- =====================================================
-     PROCESSING CANVAS
-     ===================================================== -->
+<div class="controlPanel">
 
-<canvas
-    id="processCanvas"
-    width="320"
-    height="240">
-</canvas>
+    <div class="buttons">
+
+        <button
+            class="control draw"
+            onclick="startDrawing()">
+            ✏️ DRAW PATH
+        </button>
+
+        <button
+            class="control clear"
+            onclick="clearPath()">
+            🗑 CLEAR
+        </button>
+
+        <button
+            class="control start"
+            onclick="startAuto()">
+            ▶ START AUTO
+        </button>
+
+        <button
+            class="control stop"
+            onclick="stopAuto()">
+            ⛔ STOP
+        </button>
+
+    </div>
+
+
+    <div class="data">
+
+        <span>
+            Mode:
+            <span id="mode" class="mode">
+                READY
+            </span>
+        </span>
+
+        <span>
+            Steering:
+            <span id="steerValue">
+                0.00
+            </span>
+        </span>
+
+        <span>
+            Path:
+            <span id="pathCount">
+                0
+            </span>
+        </span>
+
+    </div>
+
+</div>
 
 
 <script>
 
-
-// =====================================================
-// PEERJS
-// =====================================================
-
-let peer =
-    new Peer();
-
-let myPeerId =
-    null;
-
-let dataConnection =
-    null;
-
-let videoCall =
-    null;
+/* =====================================================
+   GPSAGRI V3.2
+   PHONE 2 MANUAL PATH TRACKING
+   ===================================================== */
 
 
-// =====================================================
-// VIDEO
-// =====================================================
+/* =====================================================
+   PEERJS
+   ===================================================== */
+
+let peer = null;
+
+let myPeerId = "";
+
+let dataConnection = null;
+
+let currentCall = null;
+
+
+/* =====================================================
+   DOM
+   ===================================================== */
 
 const remoteVideo =
-    document.getElementById(
-        "remoteVideo"
+    document.getElementById("remoteVideo");
+
+const pathCanvas =
+    document.getElementById("pathCanvas");
+
+const infoCanvas =
+    document.getElementById("infoCanvas");
+
+const pathCtx =
+    pathCanvas.getContext("2d");
+
+const infoCtx =
+    infoCanvas.getContext("2d");
+
+
+/* =====================================================
+   PATH DATA
+   ===================================================== */
+
+let pathPoints = [];
+
+let drawing = false;
+
+let drawingEnabled = false;
+
+let autoMode = false;
+
+let controlTimer = null;
+
+let lastSteer = 0;
+
+
+/* =====================================================
+   PATH SETTINGS
+   ===================================================== */
+
+/*
+   Look-ahead line.
+
+   0.0 = top
+   1.0 = bottom
+
+   0.72 means approximately 72%
+   down the camera image.
+*/
+
+const LOOK_AHEAD_Y = 0.72;
+
+
+/*
+   Steering deadband.
+
+   Small movements around the center
+   are treated as straight.
+*/
+
+const DEAD_BAND = 0.08;
+
+
+/*
+   Maximum steering command.
+*/
+
+const MAX_STEER = 1.0;
+
+
+/* =====================================================
+   CANVAS RESIZE
+   ===================================================== */
+
+function resizeCanvas() {
+
+    const rect =
+        pathCanvas.getBoundingClientRect();
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+    pathCanvas.width =
+        rect.width * dpr;
+
+    pathCanvas.height =
+        rect.height * dpr;
+
+    infoCanvas.width =
+        rect.width * dpr;
+
+    infoCanvas.height =
+        rect.height * dpr;
+
+    pathCtx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
     );
 
-
-// =====================================================
-// VIDEO AREA
-// =====================================================
-
-const videoArea =
-    document.getElementById(
-        "videoArea"
+    infoCtx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
     );
 
+    redraw();
 
-// =====================================================
-// OVERLAY
-// =====================================================
+}
 
-const overlayCanvas =
-    document.getElementById(
-        "overlayCanvas"
-    );
-
-const overlayCtx =
-    overlayCanvas.getContext(
-        "2d"
-    );
-
-
-// =====================================================
-// PROCESSING CANVAS
-// =====================================================
-
-const processCanvas =
-    document.getElementById(
-        "processCanvas"
-    );
-
-const processCtx =
-    processCanvas.getContext(
-        "2d",
-        {
-            willReadFrequently: true
-        }
-    );
-
-
-// =====================================================
-// STATUS ELEMENTS
-// =====================================================
-
-const pathStatus =
-    document.getElementById(
-        "pathStatus"
-    );
-
-const pathPosition =
-    document.getElementById(
-        "pathPosition"
-    );
-
-const steeringValue =
-    document.getElementById(
-        "steeringValue"
-    );
-
-const confidenceText =
-    document.getElementById(
-        "confidence"
-    );
-
-const info =
-    document.getElementById(
-        "info"
-    );
-
-
-// =====================================================
-// SETTINGS
-// =====================================================
-
-let greenThreshold =
-    95;
-
-
-// =====================================================
-// DETECTION
-// =====================================================
-
-let detectionRunning =
-    false;
-
-let detectionTimer =
-    null;
-
-
-// =====================================================
-// PEER OPEN
-// =====================================================
-
-peer.on(
-    "open",
-    function(id)
-    {
-
-        myPeerId =
-            id;
-
-        info.innerHTML =
-            "🟢 PeerJS connected.<br>" +
-            "Controller ID: <b>" +
-            id +
-            "</b><br>" +
-            "Enter Phone 1 camera ID.";
-
-    }
+window.addEventListener(
+    "resize",
+    resizeCanvas
 );
 
-
-// =====================================================
-// PEER ERROR
-// =====================================================
-
-peer.on(
-    "error",
-    function(error)
-    {
-
-        console.error(error);
-
-        info.innerHTML =
-            "🔴 PeerJS error: " +
-            error.type;
-
-    }
-);
+resizeCanvas();
 
 
-// =====================================================
-// RECEIVE CAMERA CALL
-// =====================================================
+/* =====================================================
+   PEER INITIALIZATION
+   ===================================================== */
 
-peer.on(
-    "call",
-    function(call)
-    {
+peer = new Peer();
 
-        videoCall =
-            call;
+peer.on("open", function(id) {
 
+    myPeerId = id;
 
-        info.innerHTML =
-            "📡 Camera call received...";
+    document.getElementById(
+        "myPeerId"
+    ).textContent = id;
 
+    setStatus(
+        "PEER READY",
+        "#00ff66"
+    );
 
-        call.answer();
-
-
-        call.on(
-            "stream",
-            function(stream)
-            {
-
-                remoteVideo.srcObject =
-                    stream;
+});
 
 
-                remoteVideo.play()
-                .catch(
-                    function(error)
-                    {
-                        console.log(error);
-                    }
-                );
+/* =====================================================
+   INCOMING DATA CONNECTION
+   ===================================================== */
+
+peer.on("connection", function(conn) {
+
+    dataConnection = conn;
+
+});
 
 
-                info.innerHTML =
-                    "🟢 LIVE CAMERA CONNECTED<br>" +
-                    "Ready for path detection.";
+/* =====================================================
+   INCOMING VIDEO CALL
+   ===================================================== */
 
+peer.on("call", function(call) {
 
-                resizeOverlay();
+    /*
+       Phone 1 sends the camera stream
+       after receiving our request.
+    */
 
+    currentCall = call;
 
-                startDetection();
+    call.answer();
 
-            }
+    call.on("stream", function(stream) {
+
+        remoteVideo.srcObject = stream;
+
+        remoteVideo.play().catch(() => {});
+
+        setStatus(
+            "LIVE CAMERA",
+            "#00ff66"
         );
 
+        drawOverlay();
 
-        call.on(
-            "close",
-            function()
-            {
+    });
 
-                stopDetection();
+    call.on("close", function() {
 
-
-                remoteVideo.srcObject =
-                    null;
-
-
-                info.innerHTML =
-                    "🔴 Camera disconnected.";
-
-            }
+        setStatus(
+            "VIDEO CLOSED",
+            "#ff9800"
         );
 
+        remoteVideo.srcObject = null;
 
-        call.on(
-            "error",
-            function(error)
-            {
+    });
 
-                stopDetection();
+});
 
 
-                info.innerHTML =
-                    "🔴 Video error: " +
-                    error.type;
+/* =====================================================
+   PEER ERROR
+   ===================================================== */
 
-            }
-        );
+peer.on("error", function(error) {
 
-    }
-);
+    console.log(
+        "PeerJS error:",
+        error
+    );
+
+    setStatus(
+        "PEER ERROR",
+        "#ff3333"
+    );
+
+});
 
 
-// =====================================================
-// CONNECT TO PHONE 1
-// =====================================================
+/* =====================================================
+   CONNECT PHONE 1
+   ===================================================== */
 
-function connectCamera()
-{
+function connectCamera() {
 
     const cameraId =
-        document
-        .getElementById(
-            "cameraPeerId"
-        )
-        .value
-        .trim();
+        document.getElementById(
+            "cameraId"
+        ).value.trim();
 
-
-    if (!cameraId)
-    {
+    if (!cameraId) {
 
         alert(
-            "Enter Phone 1 Camera Peer ID."
+            "Enter Phone 1 Camera Peer ID"
         );
 
         return;
-
     }
 
-
-    if (!myPeerId)
-    {
+    if (!myPeerId) {
 
         alert(
-            "PeerJS is still connecting."
+            "Peer ID is not ready yet."
         );
 
         return;
-
     }
-
-
-    info.innerHTML =
-        "Connecting to Phone 1...";
 
 
     dataConnection =
-        peer.connect(
-            cameraId,
-            {
-                reliable: false
-            }
-        );
+        peer.connect(cameraId);
 
 
     dataConnection.on(
         "open",
-        function()
-        {
+        function() {
 
-            info.innerHTML =
-                "🟢 Connected to Phone 1.<br>" +
-                "Requesting live video...";
-
+            setStatus(
+                "REQUESTING VIDEO",
+                "#ffd740"
+            );
 
             dataConnection.send({
 
@@ -881,13 +597,12 @@ function connectCamera()
 
     dataConnection.on(
         "error",
-        function(error)
-        {
+        function(error) {
 
-            console.error(error);
-
-            info.innerHTML =
-                "🔴 Data connection error.";
+            console.log(
+                "Data connection error:",
+                error
+            );
 
         }
     );
@@ -895,1032 +610,1023 @@ function connectCamera()
 }
 
 
-// =====================================================
-// RESIZE OVERLAY
-// =====================================================
+/* =====================================================
+   STATUS
+   ===================================================== */
 
-function resizeOverlay()
-{
+function setStatus(
+    text,
+    color
+) {
 
-    const width =
-        remoteVideo.clientWidth;
+    const element =
+        document.getElementById(
+            "status"
+        );
 
-    const height =
-        remoteVideo.clientHeight;
+    element.textContent = text;
 
+    element.style.color = color;
+
+}
+
+
+/* =====================================================
+   DRAW PATH
+   ===================================================== */
+
+function startDrawing() {
+
+    /*
+       Stop automatic movement while
+       editing the path.
+    */
+
+    stopAuto();
+
+    drawingEnabled = true;
+
+    pathPoints = [];
+
+    updatePathCount();
+
+    clearCanvasOnly();
+
+    document.getElementById(
+        "mode"
+    ).textContent = "DRAWING";
+
+    document.getElementById(
+        "mode"
+    ).style.color = "#2196f3";
+
+}
+
+
+/* =====================================================
+   POINTER DOWN
+   ===================================================== */
+
+pathCanvas.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        if (!drawingEnabled) {
+            return;
+        }
+
+        drawing = true;
+
+        pathCanvas.setPointerCapture(
+            event.pointerId
+        );
+
+        pathPoints = [];
+
+        addPoint(event);
+
+    }
+);
+
+
+/* =====================================================
+   POINTER MOVE
+   ===================================================== */
+
+pathCanvas.addEventListener(
+    "pointermove",
+    function(event) {
+
+        if (!drawing) {
+            return;
+        }
+
+        addPoint(event);
+
+    }
+);
+
+
+/* =====================================================
+   POINTER UP
+   ===================================================== */
+
+pathCanvas.addEventListener(
+    "pointerup",
+    function() {
+
+        drawing = false;
+
+        drawingEnabled = false;
+
+        redraw();
+
+        document.getElementById(
+            "mode"
+        ).textContent = "PATH READY";
+
+        document.getElementById(
+            "mode"
+        ).style.color = "#00ff66";
+
+    }
+);
+
+
+/* =====================================================
+   ADD PATH POINT
+   ===================================================== */
+
+function addPoint(event) {
+
+    const rect =
+        pathCanvas.getBoundingClientRect();
+
+    const x =
+        event.clientX -
+        rect.left;
+
+    const y =
+        event.clientY -
+        rect.top;
+
+
+    /*
+       Ignore points outside canvas.
+    */
 
     if (
-        width > 0 &&
-        height > 0
-    )
-    {
+        x < 0 ||
+        y < 0 ||
+        x > rect.width ||
+        y > rect.height
+    ) {
 
-        overlayCanvas.width =
-            width;
-
-        overlayCanvas.height =
-            height;
+        return;
 
     }
+
+
+    /*
+       Avoid storing too many points.
+    */
+
+    if (pathPoints.length > 0) {
+
+        const last =
+            pathPoints[
+                pathPoints.length - 1
+            ];
+
+        const dx =
+            x - last.x;
+
+        const dy =
+            y - last.y;
+
+        const distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+        if (distance < 4) {
+            return;
+        }
+
+    }
+
+
+    pathPoints.push({
+        x: x,
+        y: y
+    });
+
+
+    redraw();
+
+    updatePathCount();
 
 }
 
 
-// =====================================================
-// START DETECTION
-// =====================================================
+/* =====================================================
+   CLEAR PATH
+   ===================================================== */
 
-function startDetection()
-{
+function clearPath() {
 
-    if (detectionRunning)
-    {
-        return;
-    }
+    stopAuto();
+
+    pathPoints = [];
+
+    drawing = false;
+
+    drawingEnabled = false;
+
+    clearCanvasOnly();
+
+    updatePathCount();
+
+    document.getElementById(
+        "mode"
+    ).textContent = "READY";
+
+}
 
 
-    detectionRunning =
-        true;
+/* =====================================================
+   CLEAR CANVAS
+   ===================================================== */
+
+function clearCanvasOnly() {
+
+    const rect =
+        pathCanvas.getBoundingClientRect();
+
+    pathCtx.clearRect(
+        0,
+        0,
+        rect.width,
+        rect.height
+    );
+
+    drawOverlay();
+
+}
 
 
-    detectionTimer =
-        setInterval(
-            detectPath,
-            120
+/* =====================================================
+   REDRAW
+   ===================================================== */
+
+function redraw() {
+
+    const rect =
+        pathCanvas.getBoundingClientRect();
+
+    pathCtx.clearRect(
+        0,
+        0,
+        rect.width,
+        rect.height
+    );
+
+
+    if (pathPoints.length > 0) {
+
+        pathCtx.beginPath();
+
+        pathCtx.moveTo(
+            pathPoints[0].x,
+            pathPoints[0].y
         );
 
 
-    pathStatus.innerText =
-        "SCANNING";
+        for (
+            let i = 1;
+            i < pathPoints.length;
+            i++
+        ) {
 
-    pathStatus.className =
-        "statusValue yellow";
+            pathCtx.lineTo(
+                pathPoints[i].x,
+                pathPoints[i].y
+            );
+
+        }
 
 
-    info.innerHTML =
-        "🧠 Path detection running...";
+        /*
+           Thick path so it is easy to see.
+        */
+
+        pathCtx.lineWidth = 8;
+
+        pathCtx.lineCap = "round";
+
+        pathCtx.lineJoin = "round";
+
+        pathCtx.strokeStyle =
+            "#00ff66";
+
+        pathCtx.stroke();
+
+
+        /*
+           Draw points.
+        */
+
+        for (
+            let i = 0;
+            i < pathPoints.length;
+            i++
+        ) {
+
+            pathCtx.beginPath();
+
+            pathCtx.arc(
+                pathPoints[i].x,
+                pathPoints[i].y,
+                3,
+                0,
+                Math.PI * 2
+            );
+
+            pathCtx.fillStyle =
+                "#ffffff";
+
+            pathCtx.fill();
+
+        }
+
+    }
+
+
+    drawOverlay();
 
 }
 
 
-// =====================================================
-// STOP DETECTION
-// =====================================================
+/* =====================================================
+   CAMERA OVERLAY
+   ===================================================== */
 
-function stopDetection()
-{
+function drawOverlay() {
 
-    detectionRunning =
-        false;
+    const rect =
+        infoCanvas.getBoundingClientRect();
 
-
-    if (detectionTimer)
-    {
-
-        clearInterval(
-            detectionTimer
-        );
-
-        detectionTimer =
-            null;
-
-    }
-
-}
-
-
-// =====================================================
-// UPDATE GREEN THRESHOLD
-// =====================================================
-
-function updateThreshold()
-{
-
-    greenThreshold =
-        parseInt(
-            document
-            .getElementById(
-                "greenThreshold"
-            )
-            .value
-        );
-
-
-    document
-    .getElementById(
-        "thresholdValue"
-    )
-    .innerText =
-        greenThreshold;
-
-}
-
-
-// =====================================================
-// PATH DETECTION
-// =====================================================
-
-function detectPath()
-{
-
-    if (!detectionRunning)
-    {
-        return;
-    }
-
-
-    if (
-        remoteVideo.readyState < 2
-    )
-    {
-        return;
-    }
+    infoCtx.clearRect(
+        0,
+        0,
+        rect.width,
+        rect.height
+    );
 
 
     const width =
-        processCanvas.width;
+        rect.width;
 
     const height =
-        processCanvas.height;
+        rect.height;
 
 
-    // =================================================
-    // DRAW VIDEO
-    // =================================================
+    /*
+       Camera center line.
+    */
 
-    processCtx.drawImage(
-        remoteVideo,
-        0,
-        0,
-        width,
+    const centerX =
+        width / 2;
+
+
+    infoCtx.beginPath();
+
+    infoCtx.moveTo(
+        centerX,
+        0
+    );
+
+    infoCtx.lineTo(
+        centerX,
         height
     );
 
+    infoCtx.strokeStyle =
+        "rgba(255,255,255,0.45)";
 
-    const image =
-        processCtx.getImageData(
-            0,
-            0,
-            width,
-            height
-        );
+    infoCtx.lineWidth = 2;
 
+    infoCtx.setLineDash([
+        8,
+        8
+    ]);
 
-    const pixels =
-        image.data;
+    infoCtx.stroke();
 
-
-    // =================================================
-    // ROI
-    //
-    // Use lower 55% of image.
-    //
-    // This is where the road/path normally appears.
-    // =================================================
-
-    const roiStartY =
-        Math.floor(
-            height * 0.45
-        );
+    infoCtx.setLineDash([]);
 
 
-    const roiEndY =
-        height;
+    /*
+       Look-ahead line.
+    */
+
+    const lookY =
+        height * LOOK_AHEAD_Y;
 
 
-    // =================================================
-    // Divide image into columns
-    // =================================================
+    infoCtx.beginPath();
 
-    const columns =
-        16;
+    infoCtx.moveTo(
+        0,
+        lookY
+    );
 
+    infoCtx.lineTo(
+        width,
+        lookY
+    );
 
-    const columnWidth =
-        width / columns;
+    infoCtx.strokeStyle =
+        "rgba(255,215,64,0.8)";
 
+    infoCtx.lineWidth = 2;
 
-    let greenColumns =
-        new Array(columns)
-        .fill(0);
-
-
-    let totalGreen =
-        0;
-
-
-    // =================================================
-    // SCAN GREEN VEGETATION
-    // =================================================
-
-    for (
-        let y = roiStartY;
-        y < roiEndY;
-        y += 2
-    )
-    {
-
-        for (
-            let x = 0;
-            x < width;
-            x += 2
-        )
-        {
-
-            const index =
-                (
-                    y * width +
-                    x
-                ) * 4;
+    infoCtx.stroke();
 
 
-            const r =
-                pixels[index];
+    /*
+       Labels.
+    */
 
-            const g =
-                pixels[index + 1];
+    infoCtx.font =
+        "bold 13px Arial";
 
-            const b =
-                pixels[index + 2];
+    infoCtx.fillStyle =
+        "rgba(255,255,255,0.9)";
 
+    infoCtx.fillText(
+        "CAMERA CENTER",
+        centerX + 6,
+        25
+    );
 
-            // =================================================
-            // GREEN DETECTION
-            // =================================================
+    infoCtx.fillStyle =
+        "#ffd740";
 
-            const isGreen =
-                g > greenThreshold &&
-                g > r * 1.10 &&
-                g > b * 1.05;
-
-
-            if (isGreen)
-            {
-
-                const column =
-                    Math.floor(
-                        x / columnWidth
-                    );
+    infoCtx.fillText(
+        "LOOK AHEAD",
+        8,
+        lookY - 7
+    );
 
 
-                if (
-                    column >= 0 &&
-                    column < columns
-                )
-                {
+    /*
+       Steering marker.
+    */
 
-                    greenColumns[column]++;
+    if (
+        autoMode &&
+        pathPoints.length > 0
+    ) {
 
-                    totalGreen++;
+        const target =
+            getLookAheadPoint();
 
-                }
+        if (target) {
 
-            }
+            infoCtx.beginPath();
+
+            infoCtx.arc(
+                target.x,
+                target.y,
+                12,
+                0,
+                Math.PI * 2
+            );
+
+            infoCtx.strokeStyle =
+                "#ff00ff";
+
+            infoCtx.lineWidth = 4;
+
+            infoCtx.stroke();
 
         }
 
     }
 
-
-    // =================================================
-    // FIND GREEN BOUNDARIES
-    // =================================================
-
-    const columnArea =
-        (
-            (roiEndY - roiStartY)
-            / 2
-        ) *
-        (
-            columnWidth / 2
-        );
+}
 
 
-    const minimumColumnGreen =
-        columnArea * 0.05;
+/* =====================================================
+   UPDATE PATH COUNT
+   ===================================================== */
+
+function updatePathCount() {
+
+    document.getElementById(
+        "pathCount"
+    ).textContent =
+        pathPoints.length;
+
+}
 
 
-    let leftBoundary =
-        -1;
+/* =====================================================
+   GET LOOK-AHEAD POINT
+   ===================================================== */
 
-    let rightBoundary =
-        -1;
+/*
+   Find the path position closest
+   to the look-ahead horizontal line.
+
+   This makes a curved hand-drawn
+   path usable for steering.
+*/
+
+function getLookAheadPoint() {
+
+    if (
+        pathPoints.length === 0
+    ) {
+
+        return null;
+
+    }
 
 
-    // =================================================
-    // FIND LEFT VEGETATION
-    // =================================================
+    const rect =
+        pathCanvas.getBoundingClientRect();
+
+    const targetY =
+        rect.height *
+        LOOK_AHEAD_Y;
+
+
+    /*
+       First try to find two points
+       surrounding targetY.
+    */
+
+    let bestPoint = null;
+
+    let bestDistance =
+        Infinity;
+
 
     for (
         let i = 0;
-        i < columns / 2;
+        i < pathPoints.length;
         i++
-    )
-    {
+    ) {
+
+        const p =
+            pathPoints[i];
+
+        const distance =
+            Math.abs(
+                p.y -
+                targetY
+            );
+
 
         if (
-            greenColumns[i] >
-            minimumColumnGreen
-        )
-        {
+            distance <
+            bestDistance
+        ) {
 
-            leftBoundary =
-                i;
+            bestDistance =
+                distance;
+
+            bestPoint = p;
 
         }
 
     }
 
 
-    // =================================================
-    // FIND RIGHT VEGETATION
-    // =================================================
+    /*
+       If path is long enough,
+       interpolate between nearby
+       points for smoother tracking.
+    */
 
     for (
-        let i = columns - 1;
-        i >= columns / 2;
-        i--
-    )
-    {
+        let i = 0;
+        i <
+        pathPoints.length - 1;
+        i++
+    ) {
+
+        const p1 =
+            pathPoints[i];
+
+        const p2 =
+            pathPoints[i + 1];
+
+
+        const minY =
+            Math.min(
+                p1.y,
+                p2.y
+            );
+
+        const maxY =
+            Math.max(
+                p1.y,
+                p2.y
+            );
+
 
         if (
-            greenColumns[i] >
-            minimumColumnGreen
-        )
-        {
+            targetY >= minY &&
+            targetY <= maxY &&
+            p1.y !== p2.y
+        ) {
 
-            rightBoundary =
-                i;
+            const ratio =
+                (
+                    targetY -
+                    p1.y
+                ) /
+                (
+                    p2.y -
+                    p1.y
+                );
+
+
+            const x =
+                p1.x +
+                (
+                    p2.x -
+                    p1.x
+                ) *
+                ratio;
+
+
+            return {
+                x: x,
+                y: targetY
+            };
 
         }
 
     }
 
 
-    // =================================================
-    // NO VEGETATION
-    // =================================================
+    return bestPoint;
+
+}
+
+
+/* =====================================================
+   CALCULATE STEERING
+   ===================================================== */
+
+function calculateSteering() {
 
     if (
-        leftBoundary === -1 &&
-        rightBoundary === -1
-    )
-    {
+        pathPoints.length < 2
+    ) {
 
-        noPath();
-
-        return;
+        return 0;
 
     }
 
 
-    // =================================================
-    // CALCULATE PATH CENTER
-    // =================================================
-
-    let pathCenter;
+    const target =
+        getLookAheadPoint();
 
 
-    if (
-        leftBoundary !== -1 &&
-        rightBoundary !== -1
-    )
-    {
+    if (!target) {
 
-        const leftX =
-            (
-                leftBoundary +
-                0.5
-            ) *
-            columnWidth;
-
-
-        const rightX =
-            (
-                rightBoundary +
-                0.5
-            ) *
-            columnWidth;
-
-
-        pathCenter =
-            (
-                leftX +
-                rightX
-            ) / 2;
+        return 0;
 
     }
 
 
-    else if (
-        leftBoundary !== -1
-    )
-    {
+    const rect =
+        pathCanvas.getBoundingClientRect();
 
-        // Only left vegetation visible.
-
-        // Assume path is to its right.
-
-        const leftX =
-            (
-                leftBoundary +
-                0.5
-            ) *
-            columnWidth;
+    const centerX =
+        rect.width / 2;
 
 
-        pathCenter =
-            leftX +
-            width * 0.25;
+    /*
+       Normalize:
 
-    }
-
-
-    else
-    {
-
-        // Only right vegetation visible.
-
-        // Assume path is to its left.
-
-        const rightX =
-            (
-                rightBoundary +
-                0.5
-            ) *
-            columnWidth;
-
-
-        pathCenter =
-            rightX -
-            width * 0.25;
-
-    }
-
-
-    pathCenter =
-        Math.max(
-            0,
-            Math.min(
-                width,
-                pathCenter
-            )
-        );
-
-
-    // =================================================
-    // NORMALIZED STEERING
-    // =================================================
+       far left  = -1
+       center    =  0
+       far right = +1
+    */
 
     let x =
         (
-            pathCenter /
-            width
-        ) * 2 - 1;
+            target.x -
+            centerX
+        ) /
+        centerX;
 
+
+    /*
+       Limit range.
+    */
 
     x =
         Math.max(
-            -1,
+            -MAX_STEER,
             Math.min(
-                1,
+                MAX_STEER,
                 x
             )
         );
 
 
-    // =================================================
-    // CONFIDENCE
-    // =================================================
-
-    let confidence =
-        0;
-
+    /*
+       Deadband.
+    */
 
     if (
-        leftBoundary !== -1
-    )
-    {
+        Math.abs(x) <
+        DEAD_BAND
+    ) {
 
-        confidence += 35;
+        x = 0;
 
     }
 
 
-    if (
-        rightBoundary !== -1
-    )
-    {
+    /*
+       Smooth steering.
+    */
 
-        confidence += 35;
-
-    }
-
-
-    if (
-        totalGreen > 300
-    )
-    {
-
-        confidence += 30;
-
-    }
-
-
-    confidence =
-        Math.min(
-            100,
-            confidence
+    const smooth =
+        (
+            lastSteer * 0.70
+        ) +
+        (
+            x * 0.30
         );
 
 
-    // =================================================
-    // DISPLAY
-    // =================================================
-
-    showPath(
-        leftBoundary,
-        rightBoundary,
-        pathCenter,
-        roiStartY,
-        width,
-        height
-    );
+    lastSteer =
+        smooth;
 
 
-    updateStatus(
-        x,
-        confidence
-    );
+    return smooth;
 
 }
 
 
-// =====================================================
-// NO PATH
-// =====================================================
+/* =====================================================
+   START AUTO
+   ===================================================== */
 
-function noPath()
-{
+function startAuto() {
 
-    pathStatus.innerText =
-        "PATH LOST";
+    if (
+        pathPoints.length < 2
+    ) {
 
-    pathStatus.className =
-        "statusValue red";
+        alert(
+            "First draw a path."
+        );
 
+        return;
 
-    pathPosition.innerText =
-        "---";
-
-
-    steeringValue.innerText =
-        "STOP";
+    }
 
 
-    confidenceText.innerText =
-        "0%";
+    drawingEnabled = false;
+
+    autoMode = true;
+
+    lastSteer = 0;
 
 
-    clearOverlay();
+    document.getElementById(
+        "mode"
+    ).textContent =
+        "AUTO TRACKING";
+
+    document.getElementById(
+        "mode"
+    ).style.color =
+        "#00ff66";
 
 
-    info.innerHTML =
-        "🔴 No clear crop/path boundary detected.";
+    /*
+       Start control loop.
+    */
+
+    if (controlTimer) {
+
+        clearInterval(
+            controlTimer
+        );
+
+    }
+
+
+    controlTimer =
+        setInterval(
+            updateSteering,
+            100
+        );
+
+
+    updateSteering();
 
 }
 
 
-// =====================================================
-// UPDATE STATUS
-// =====================================================
+/* =====================================================
+   UPDATE STEERING
+   ===================================================== */
 
-function updateStatus(
-    x,
-    confidence
-)
-{
+function updateSteering() {
 
-    const percentage =
-        Math.round(
-            x * 100
-        );
+    if (!autoMode) {
+
+        return;
+
+    }
 
 
-    steeringValue.innerText =
+    const x =
+        calculateSteering();
+
+
+    document.getElementById(
+        "steerValue"
+    ).textContent =
         x.toFixed(2);
 
 
-    confidenceText.innerText =
-        confidence + "%";
+    /*
+       Send command to ESP32.
+    */
+
+    sendSteering(x);
 
 
-    // =================================================
-    // CENTER
-    // =================================================
+    /*
+       Update visual overlay.
+    */
 
-    if (
-        Math.abs(percentage) < 8
-    )
-    {
-
-        pathPosition.innerText =
-            "CENTER";
-
-
-        pathStatus.innerText =
-            "PATH FOUND";
-
-
-        pathStatus.className =
-            "statusValue green";
-
-    }
-
-
-    // =================================================
-    // LEFT
-    // =================================================
-
-    else if (
-        percentage < 0
-    )
-    {
-
-        pathPosition.innerText =
-            "LEFT " +
-            Math.abs(percentage) +
-            "%";
-
-
-        pathStatus.innerText =
-            "PATH FOUND";
-
-
-        pathStatus.className =
-            "statusValue green";
-
-    }
-
-
-    // =================================================
-    // RIGHT
-    // =================================================
-
-    else
-    {
-
-        pathPosition.innerText =
-            "RIGHT " +
-            percentage +
-            "%";
-
-
-        pathStatus.innerText =
-            "PATH FOUND";
-
-
-        pathStatus.className =
-            "statusValue green";
-
-    }
-
-
-    info.innerHTML =
-        "🌱 Vegetation boundaries detected.<br>" +
-        "Estimated path center: " +
-        percentage +
-        "%<br>" +
-        "Confidence: " +
-        confidence +
-        "%<br>" +
-        "⚠ Detection-only mode — motors are NOT controlled.";
+    drawOverlay();
 
 }
 
 
-// =====================================================
-// DRAW PATH
-// =====================================================
+/* =====================================================
+   SEND STEERING TO ESP32
+   ===================================================== */
 
-function showPath(
-    leftBoundary,
-    rightBoundary,
-    pathCenter,
-    roiStartY,
-    width,
-    height
-)
-{
+function sendSteering(x) {
 
-    resizeOverlay();
+    /*
+       Existing ESP32 V2.1 endpoint:
 
+       /steer?x=value
 
-    const displayWidth =
-        overlayCanvas.width;
+       Example:
 
-    const displayHeight =
-        overlayCanvas.height;
+       /steer?x=-0.50
+       /steer?x=0
+       /steer?x=0.70
+    */
 
 
-    overlayCtx.clearRect(
-        0,
-        0,
-        displayWidth,
-        displayHeight
-    );
-
-
-    // =================================================
-    // ROI LINE
-    // =================================================
-
-    const roiY =
-        (
-            roiStartY /
-            height
-        ) *
-        displayHeight;
-
-
-    overlayCtx.beginPath();
-
-    overlayCtx.moveTo(
-        0,
-        roiY
-    );
-
-    overlayCtx.lineTo(
-        displayWidth,
-        roiY
-    );
-
-    overlayCtx.strokeStyle =
-        "yellow";
-
-    overlayCtx.lineWidth =
-        2;
-
-    overlayCtx.stroke();
-
-
-    // =================================================
-    // PATH CENTER
-    // =================================================
-
-    const centerX =
-        (
-            pathCenter /
-            width
-        ) *
-        displayWidth;
-
-
-    overlayCtx.beginPath();
-
-    overlayCtx.moveTo(
-        centerX,
-        roiY
-    );
-
-    overlayCtx.lineTo(
-        centerX,
-        displayHeight
-    );
-
-    overlayCtx.strokeStyle =
-        "#00ff00";
-
-    overlayCtx.lineWidth =
-        5;
-
-    overlayCtx.stroke();
-
-
-    // =================================================
-    // CAMERA CENTER
-    // =================================================
-
-    const cameraCenter =
-        displayWidth / 2;
-
-
-    overlayCtx.beginPath();
-
-    overlayCtx.moveTo(
-        cameraCenter,
-        roiY
-    );
-
-    overlayCtx.lineTo(
-        cameraCenter,
-        displayHeight
-    );
-
-    overlayCtx.strokeStyle =
-        "#00e5ff";
-
-    overlayCtx.lineWidth =
-        2;
-
-    overlayCtx.setLineDash(
-        [8, 8]
-    );
-
-    overlayCtx.stroke();
-
-    overlayCtx.setLineDash([]);
-
-
-    // =================================================
-    // PATH REGION
-    // =================================================
-
-    if (
-        leftBoundary !== -1 &&
-        rightBoundary !== -1
+    fetch(
+        "/steer?x=" +
+        encodeURIComponent(
+            x.toFixed(3)
+        ),
+        {
+            method: "GET",
+            cache: "no-store"
+        }
     )
-    {
+    .then(
+        function(response) {
 
-        const leftX =
-            (
-                (
-                    leftBoundary +
-                    1
-                ) /
-                16
-            ) *
-            displayWidth;
+            if (!response.ok) {
+
+                console.log(
+                    "ESP32 steering error"
+                );
+
+            }
+
+        }
+    )
+    .catch(
+        function(error) {
+
+            console.log(
+                "ESP32 connection:",
+                error
+            );
+
+        }
+    );
+
+}
 
 
-        const rightX =
-            (
-                rightBoundary /
-                16
-            ) *
-            displayWidth;
+/* =====================================================
+   STOP AUTO
+   ===================================================== */
 
+function stopAuto() {
 
-        overlayCtx.fillStyle =
-            "rgba(0,255,0,0.15)";
+    autoMode = false;
 
+    drawingEnabled = false;
 
-        overlayCtx.fillRect(
+    if (controlTimer) {
 
-            leftX,
-
-            roiY,
-
-            rightX - leftX,
-
-            displayHeight - roiY
-
+        clearInterval(
+            controlTimer
         );
 
+        controlTimer = null;
+
     }
 
 
-    // =================================================
-    // CENTER MARKER
-    // =================================================
-
-    overlayCtx.beginPath();
-
-    overlayCtx.arc(
-        centerX,
-        (
-            roiY +
-            displayHeight
-        ) / 2,
-        10,
-        0,
-        Math.PI * 2
-    );
+    lastSteer = 0;
 
 
-    overlayCtx.fillStyle =
-        "#00ff00";
-
-    overlayCtx.fill();
-
-
-    overlayCtx.strokeStyle =
-        "white";
-
-    overlayCtx.lineWidth =
-        2;
-
-    overlayCtx.stroke();
-
-
-    // =================================================
-    // LABEL
-    // =================================================
-
-    overlayCtx.font =
-        "bold 16px Arial";
-
-    overlayCtx.fillStyle =
-        "#00ff00";
-
-    overlayCtx.fillText(
-        "PATH CENTER",
-        Math.max(
-            5,
-            centerX - 50
-        ),
-        roiY + 25
-    );
-
-}
-
-
-// =====================================================
-// CLEAR OVERLAY
-// =====================================================
-
-function clearOverlay()
-{
-
-    overlayCtx.clearRect(
-        0,
-        0,
-        overlayCanvas.width,
-        overlayCanvas.height
-    );
-
-}
-
-
-// =====================================================
-// CLEAR DISPLAY
-// =====================================================
-
-function clearDisplay()
-{
-
-    stopDetection();
-
-    clearOverlay();
-
-
-    pathStatus.innerText =
-        "STOPPED";
-
-    pathStatus.className =
-        "statusValue red";
-
-
-    pathPosition.innerText =
-        "---";
-
-
-    steeringValue.innerText =
+    document.getElementById(
+        "steerValue"
+    ).textContent =
         "0.00";
 
 
-    confidenceText.innerText =
-        "0%";
+    document.getElementById(
+        "mode"
+    ).textContent =
+        "STOPPED";
+
+    document.getElementById(
+        "mode"
+    ).style.color =
+        "#ff4444";
 
 
-    info.innerHTML =
-        "Detection stopped.";
+    /*
+       Send STOP to ESP32.
+    */
+
+    fetch(
+        "/stop",
+        {
+            method: "GET",
+            cache: "no-store"
+        }
+    )
+    .catch(
+        function(error) {
+
+            console.log(
+                "STOP error:",
+                error
+            );
+
+        }
+    );
+
+
+    drawOverlay();
 
 }
 
 
-// =====================================================
-// WINDOW RESIZE
-// =====================================================
+/* =====================================================
+   SAFETY
+   ===================================================== */
 
 window.addEventListener(
-    "resize",
-    function()
-    {
+    "beforeunload",
+    function() {
 
-        resizeOverlay();
+        /*
+           Try to stop vehicle when
+           leaving the page.
+        */
 
-    }
-);
+        try {
 
+            navigator.sendBeacon(
+                "/stop"
+            );
 
-// =====================================================
-// VIDEO METADATA
-// =====================================================
-
-remoteVideo.addEventListener(
-    "loadedmetadata",
-    function()
-    {
-
-        resizeOverlay();
+        }
+        catch(e) {}
 
     }
 );
 
+
+/* =====================================================
+   INITIAL DRAW
+   ===================================================== */
+
+setTimeout(
+    function() {
+
+        resizeCanvas();
+
+        drawOverlay();
+
+    },
+    500
+);
 
 </script>
 
 </body>
-
 </html>
