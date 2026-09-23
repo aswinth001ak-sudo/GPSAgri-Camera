@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>GPSAgri Camera</title>
+
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #101820;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.header {
+    background: #173b22;
+    padding: 15px;
+}
+
+.header h1 {
+    margin: 0;
+    color: #7CFF7C;
+}
+
+.status {
+    margin-top: 10px;
+    font-size: 15px;
+}
+
+.id-box {
+    margin: 15px;
+    padding: 15px;
+    background: #202b34;
+    border-radius: 12px;
+}
+
+.peer-id {
+    font-size: 20px;
+    font-weight: bold;
+    color: #00e5ff;
+    word-break: break-all;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+    background: black;
+}
+
+video {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: black;
+}
+
+.camera-controls {
+    margin: 15px;
+}
+
+button {
+    padding: 13px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.start {
+    background: #00c853;
+    color: white;
+}
+
+.stop {
+    background: #d50000;
+    color: white;
+}
+
+.log {
+    margin: 15px;
+    padding: 10px;
+    background: #151d24;
+    border-radius: 10px;
+    min-height: 50px;
+    text-align: left;
+    font-size: 13px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>🚜 GPSAgri Camera</h1>
+    <div class="status" id="status">
+        Starting...
+    </div>
+</div>
+
+<div class="id-box">
+
+    <div>CAMERA PEER ID</div>
+
+    <div class="peer-id" id="peerId">
+        Connecting...
+    </div>
+
+    <div style="margin-top:10px;font-size:13px;">
+        Give this ID to Phone 2
+    </div>
+
+</div>
+
+<div class="video-container">
+
+    <video
+        id="cameraVideo"
+        autoplay
+        playsinline
+        muted>
+    </video>
+
+</div>
+
+<div class="camera-controls">
+
+    <button
+        class="start"
+        onclick="startCamera()">
+        📷 START CAMERA
+    </button>
+
+    <button
+        class="stop"
+        onclick="stopCamera()">
+        ⛔ STOP CAMERA
+    </button>
+
+</div>
+
+<div class="log" id="log">
+    Waiting...
+</div>
+
+
+<script>
+
+let peer;
+let cameraStream = null;
+
+const statusText =
+    document.getElementById("status");
+
+const peerIdText =
+    document.getElementById("peerId");
+
+const video =
+    document.getElementById("cameraVideo");
+
+const logBox =
+    document.getElementById("log");
+
+
+function log(message) {
+
+    console.log(message);
+
+    logBox.innerHTML =
+        new Date().toLocaleTimeString()
+        + " - "
+        + message;
+}
+
+
+// =====================================================
+// CREATE PEER
+// =====================================================
+
+peer = new Peer();
+
+
+// =====================================================
+// PEER OPEN
+// =====================================================
+
+peer.on("open", function(id) {
+
+    peerIdText.innerText = id;
+
+    statusText.innerText =
+        "🟢 PeerJS connected";
+
+    log("Camera Peer ID created.");
+
+});
+
+
+// =====================================================
+// PEER CONNECTION
+// =====================================================
+
+peer.on("connection", function(conn) {
+
+    log("Phone 2 connected.");
+
+    conn.on("open", function() {
+
+        log("Controller data connection opened.");
+
+    });
+
+
+    conn.on("data", function(data) {
+
+        console.log("Received:", data);
+
+
+        // =============================================
+        // PHONE 2 REQUESTS VIDEO
+        // =============================================
+
+        if (
+            data &&
+            data.type === "request-video"
+        ) {
+
+            const controllerPeerId =
+                data.controllerPeerId;
+
+            log(
+                "Video requested by: "
+                + controllerPeerId
+            );
+
+
+            if (!cameraStream) {
+
+                log(
+                    "Camera is not running."
+                );
+
+                return;
+
+            }
+
+
+            // =========================================
+            // SEND CAMERA STREAM TO PHONE 2
+            // =========================================
+
+            const call = peer.call(
+                controllerPeerId,
+                cameraStream
+            );
+
+
+            call.on("error", function(error) {
+
+                log(
+                    "Video call error: "
+                    + error
+                );
+
+            });
+
+
+            call.on("close", function() {
+
+                log(
+                    "Video connection closed."
+                );
+
+            });
+
+
+            log(
+                "Camera video sent to Phone 2."
+            );
+
+        }
+
+    });
+
+
+    conn.on("close", function() {
+
+        log("Phone 2 disconnected.");
+
+    });
+
+});
+
+
+// =====================================================
+// PEER ERROR
+// =====================================================
+
+peer.on("error", function(error) {
+
+    console.error(error);
+
+    statusText.innerText =
+        "🔴 PeerJS error";
+
+    log(
+        "PeerJS error: "
+        + error.type
+    );
+
+});
+
+
+// =====================================================
+// START CAMERA
+// =====================================================
+
+async function startCamera() {
+
+    try {
+
+        if (cameraStream) {
+
+            log("Camera already running.");
+
+            return;
+
+        }
+
+
+        log("Requesting rear camera...");
+
+
+        cameraStream =
+            await navigator.mediaDevices.getUserMedia({
+
+                video: {
+
+                    facingMode: {
+                        ideal: "environment"
+                    },
+
+                    width: {
+                        ideal: 1280
+                    },
+
+                    height: {
+                        ideal: 720
+                    },
+
+                    frameRate: {
+                        ideal: 30,
+                        max: 30
+                    }
+
+                },
+
+                audio: false
+
+            });
+
+
+        video.srcObject =
+            cameraStream;
+
+
+        await video.play();
+
+
+        statusText.innerText =
+            "🟢 Camera running";
+
+
+        log(
+            "Rear camera started."
+        );
+
+    }
+
+    catch(error) {
+
+        console.error(error);
+
+        statusText.innerText =
+            "🔴 Camera failed";
+
+        log(
+            "Camera error: "
+            + error.message
+        );
+
+        alert(
+            "Camera access failed.\n\n"
+            + error.message
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// STOP CAMERA
+// =====================================================
+
+function stopCamera() {
+
+    if (!cameraStream) {
+
+        return;
+
+    }
+
+
+    cameraStream
+        .getTracks()
+        .forEach(function(track) {
+
+            track.stop();
+
+        });
+
+
+    cameraStream = null;
+
+    video.srcObject = null;
+
+
+    statusText.innerText =
+        "⚪ Camera stopped";
+
+
+    log("Camera stopped.");
+
+}
+
+</script>
+
+</body>
+</html>
