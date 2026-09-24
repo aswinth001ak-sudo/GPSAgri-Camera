@@ -801,6 +801,65 @@ input[type="range"] {
     .sender-mode{padding:7px}
 }
 
+
+/* =====================================================
+   DEVICE IP SETTINGS
+===================================================== */
+.ip-settings-card{
+    background:#0d1d12;
+    border:1px solid #235b32;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:12px;
+}
+.ip-settings-title{
+    color:#4cff7a;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+.ip-settings-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+.ip-field label{
+    display:block;
+    font-size:12px;
+    color:#a9b8ad;
+    margin-bottom:5px;
+}
+.ip-field input{
+    width:100%;
+    padding:11px;
+    border-radius:8px;
+    border:1px solid #376c45;
+    background:#07110a;
+    color:white;
+}
+.ip-settings-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:10px;
+}
+.ip-settings-actions button{
+    padding:11px;
+    border-radius:8px;
+    font-weight:bold;
+    color:white;
+    background:#159447;
+}
+.ip-settings-actions .ip-reset{background:#8d2020}
+.ip-settings-status{
+    margin-top:8px;
+    font-size:12px;
+    color:#a9b8ad;
+}
+@media(max-width:600px){
+    .ip-settings-grid{grid-template-columns:1fr}
+    .ip-settings-actions{grid-template-columns:1fr 1fr}
+}
+
 </style>
 
 </head>
@@ -885,6 +944,32 @@ input[type="range"] {
 
 <div id="receiverDashboard" class="container">
 
+
+<!-- =====================================================
+     DEVICE IP SETTINGS
+===================================================== -->
+<div class="ip-settings-card">
+    <div class="ip-settings-title">⚙️ DEVICE IP SETTINGS</div>
+
+    <div class="ip-settings-grid">
+        <div class="ip-field">
+            <label for="esp32IpInput">Vehicle ESP32 IP / Hostname</label>
+            <input id="esp32IpInput" type="text" placeholder="192.168.1.50" autocomplete="off">
+        </div>
+
+        <div class="ip-field">
+            <label for="esp32CamIpInput">ESP32-CAM IP / Hostname</label>
+            <input id="esp32CamIpInput" type="text" placeholder="192.168.1.60" autocomplete="off">
+        </div>
+    </div>
+
+    <div class="ip-settings-actions">
+        <button onclick="saveDeviceIPs()">💾 SAVE IP ADDRESSES</button>
+        <button class="ip-reset" onclick="resetDeviceIPs()">↺ RESET DEFAULTS</button>
+    </div>
+
+    <div id="ipSettingsStatus" class="ip-settings-status">IP addresses are loaded from this browser.</div>
+</div>
 
 <!-- =====================================================
      MODE / CONNECTION
@@ -1495,6 +1580,63 @@ let ESP32_IP =
 let ESP32_CAM_IP =
     localStorage.getItem("gpsagri_cam_ip") ||
     "192.168.1.60";
+
+
+/* =====================================================
+   DEVICE IP SETTINGS
+   Saved in this browser until the user changes them.
+===================================================== */
+function cleanDeviceAddress(value) {
+    return String(value || "")
+        .trim()
+        .replace(/^https?:\/\//i, "")
+        .replace(/\/$/, "");
+}
+
+function loadDeviceIPsIntoForm() {
+    const esp32Input = document.getElementById("esp32IpInput");
+    const camInput = document.getElementById("esp32CamIpInput");
+    if (esp32Input) esp32Input.value = ESP32_IP;
+    if (camInput) camInput.value = ESP32_CAM_IP;
+}
+
+function saveDeviceIPs() {
+    const esp32Input = document.getElementById("esp32IpInput");
+    const camInput = document.getElementById("esp32CamIpInput");
+
+    const newESP32IP = cleanDeviceAddress(esp32Input.value);
+    const newESP32CAMIP = cleanDeviceAddress(camInput.value);
+
+    if (!newESP32IP || !newESP32CAMIP) {
+        document.getElementById("ipSettingsStatus").textContent =
+            "Please enter both device IP addresses.";
+        return;
+    }
+
+    ESP32_IP = newESP32IP;
+    ESP32_CAM_IP = newESP32CAMIP;
+
+    localStorage.setItem("gpsagri_esp32_ip", ESP32_IP);
+    localStorage.setItem("gpsagri_cam_ip", ESP32_CAM_IP);
+
+    loadDeviceIPsIntoForm();
+
+    document.getElementById("ipSettingsStatus").textContent =
+        "✅ Saved. These IP addresses will remain saved in this browser until you change them.";
+}
+
+function resetDeviceIPs() {
+    ESP32_IP = "192.168.1.50";
+    ESP32_CAM_IP = "192.168.1.60";
+
+    localStorage.setItem("gpsagri_esp32_ip", ESP32_IP);
+    localStorage.setItem("gpsagri_cam_ip", ESP32_CAM_IP);
+
+    loadDeviceIPsIntoForm();
+
+    document.getElementById("ipSettingsStatus").textContent =
+        "↺ Default IP addresses restored and saved.";
+}
 
 
 /* =====================================================
@@ -2822,6 +2964,13 @@ document.getElementById("remoteVideo").addEventListener("emptied",()=> {
 document.getElementById("remoteVideo").addEventListener("error",()=> {
     if(pathFollowEnabled) stopPathFollow();
 });
+
+/* =====================================================
+   INITIAL DEVICE IP FORM
+===================================================== */
+
+loadDeviceIPsIntoForm();
+
 
 /* =====================================================
    INITIAL SERVO DISPLAY
