@@ -1,0 +1,2947 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>GPSAgri Dashboard</title>
+
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+
+<style>
+
+/* =====================================================
+   GLOBAL
+===================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #07110a;
+    color: white;
+}
+
+button,
+input {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+}
+
+.header {
+    background: #0b1b10;
+    border-bottom: 2px solid #1e6b32;
+    padding: 15px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header h1 {
+    margin: 0;
+    color: #4cff7a;
+    font-size: 24px;
+}
+
+.header p {
+    margin: 5px 0 0;
+    color: #a9b8ad;
+    font-size: 13px;
+}
+
+/* =====================================================
+   MAIN
+===================================================== */
+
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: auto;
+    padding: 12px;
+}
+
+/* =====================================================
+   CONNECTION PANEL
+===================================================== */
+
+.connection-panel {
+    background: #0d1d12;
+    border: 1px solid #235b32;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.connection-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.connection-row input {
+    flex: 1;
+    min-width: 180px;
+    padding: 11px;
+    border-radius: 8px;
+    border: 1px solid #376c45;
+    background: #07110a;
+    color: white;
+}
+
+.green-button {
+    background: #159447;
+    color: white;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.green-button:hover {
+    background: #20b957;
+}
+
+.status {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #4cff7a;
+}
+
+/* =====================================================
+   TOP CAMERA + CONTROL LAYOUT
+===================================================== */
+
+.top-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+    gap: 12px;
+    align-items: start;
+}
+
+/* =====================================================
+   CAMERA
+===================================================== */
+
+.card {
+    background: #0d1d12;
+    border: 1px solid #235b32;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-title {
+    background: #102719;
+    border-bottom: 1px solid #235b32;
+    padding: 10px 12px;
+    font-weight: bold;
+    color: #4cff7a;
+}
+
+.camera-card {
+    position: relative;
+}
+
+.camera-wrapper {
+    position: relative;
+    width: 100%;
+    background: black;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+}
+
+#remoteVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: black;
+}
+.camera-path-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none;z-index:10}
+.camera-path-layer.drawing-enabled{pointer-events:auto;cursor:crosshair}
+#pathCanvas{width:100%;height:100%;display:block}
+.path-toolbar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;background:#0a170d;border-top:1px solid #235b32}
+.path-toolbar button{padding:10px 5px;border-radius:8px;background:#174a27;color:white;font-weight:bold;border:1px solid #39724a}
+.path-toolbar .path-start{background:#159447}.path-toolbar .path-stop{background:#9c1e1e}.path-toolbar .path-clear{background:#8d2020}
+.path-status{padding:7px 10px;font-size:12px;color:#a9b8ad;background:#08120a;border-top:1px solid #183c24}
+.path-status b{color:#4cff7a}
+.path-hint,.path-follow-indicator{position:absolute;top:10px;z-index:20;padding:6px 9px;border-radius:7px;background:rgba(0,0,0,.62);font-size:11px;pointer-events:none}
+.path-hint{left:10px;color:white}.path-follow-indicator{right:10px;color:#ffd740}
+@media(max-width:600px){.path-toolbar{grid-template-columns:repeat(2,1fr);gap:4px;padding:5px}.path-toolbar button{padding:8px 3px;font-size:10px}.path-status{font-size:10px}.path-hint,.path-follow-indicator{font-size:9px;padding:5px 7px}}
+
+
+/* Camera center line */
+
+.camera-center-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(0,255,100,0.55);
+    pointer-events: none;
+}
+
+.camera-horizontal-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 72%;
+    height: 2px;
+    background: rgba(0,255,100,0.45);
+    pointer-events: none;
+}
+
+.camera-crosshair {
+    position: absolute;
+    left: 50%;
+    top: 72%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    border: 2px solid #4cff7a;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.camera-info {
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+}
+
+/* =====================================================
+   CONTROL COLUMN
+===================================================== */
+
+.control-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.control-card {
+    background: #0d1d12;
+    border: 1px solid #235b32;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.control-title {
+    color: #4cff7a;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* =====================================================
+   D PAD
+===================================================== */
+
+.dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    max-width: 250px;
+    margin: auto;
+}
+
+.dpad button {
+    height: 52px;
+    border-radius: 10px;
+    background: #183821;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    border: 1px solid #39724a;
+    touch-action: none;
+    user-select: none;
+}
+
+.dpad button:hover {
+    background: #245a34;
+}
+
+.dpad .stop-button {
+    background: #9c1e1e;
+}
+
+.dpad .stop-button:hover {
+    background: #c62828;
+}
+
+.dpad-empty {
+    visibility: hidden;
+}
+
+/* =====================================================
+   SLIDERS
+===================================================== */
+
+.slider-row {
+    margin-top: 12px;
+}
+
+.slider-row label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+/* =====================================================
+   SERVO
+===================================================== */
+
+.servo-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.servo-buttons button {
+    padding: 11px 5px;
+    border-radius: 8px;
+    background: #174a27;
+    color: white;
+    font-weight: bold;
+}
+
+.servo-position {
+    margin-top: 12px;
+}
+
+.servo-set {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #216e35;
+    color: white;
+    font-weight: bold;
+}
+
+/* =====================================================
+   CAPTURE
+===================================================== */
+
+.capture-button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 9px;
+    background: #a65c00;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.capture-button:hover {
+    background: #d47800;
+}
+
+/* =====================================================
+   SECTION
+===================================================== */
+
+.section {
+    margin-top: 18px;
+}
+
+.section-header {
+    padding: 12px;
+    background: #102719;
+    border: 1px solid #235b32;
+    border-radius: 12px 12px 0 0;
+    color: #4cff7a;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* =====================================================
+   MAPPING
+===================================================== */
+
+.mapping-card {
+    background: #0d1d12;
+    border: 1px solid #235b32;
+    border-radius: 0 0 12px 12px;
+    padding: 12px;
+}
+
+.map-wrapper {
+    width: 100%;
+    background: #050805;
+    border: 1px solid #32633d;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#mapCanvas {
+    width: 100%;
+    height: 420px;
+    display: block;
+    touch-action: none;
+    background:
+        linear-gradient(rgba(50,100,60,0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(50,100,60,0.18) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.map-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+    margin-top: 10px;
+}
+
+.map-buttons button {
+    padding: 11px 5px;
+    border-radius: 8px;
+    background: #174a27;
+    color: white;
+    font-weight: bold;
+}
+
+.map-buttons .danger {
+    background: #8d2020;
+}
+
+.map-status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #a9b8ad;
+}
+
+/* =====================================================
+   SENSOR GRID
+===================================================== */
+
+.sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 12px;
+    background: #0d1d12;
+    border: 1px solid #235b32;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+}
+
+.sensor-box {
+    padding: 18px 8px;
+    background: #101f15;
+    border: 1px solid #315f3e;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.sensor-name {
+    color: #a9b8ad;
+    font-size: 13px;
+}
+
+.sensor-value {
+    margin-top: 7px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #4cff7a;
+}
+
+.sensor-unit {
+    font-size: 12px;
+    color: #a9b8ad;
+}
+
+/* =====================================================
+   IMAGE
+===================================================== */
+
+.image-card {
+    background: #0d1d12;
+    border: 1px solid #235b32;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 12px;
+    text-align: center;
+}
+
+#capturedImage {
+    width: 100%;
+    max-width: 800px;
+    max-height: 600px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: black;
+    display: none;
+    margin: auto;
+}
+
+.no-image {
+    padding: 60px 10px;
+    color: #66756a;
+}
+
+/* =====================================================
+   GEMINI
+===================================================== */
+
+.ai-card {
+    background: #0d1d12;
+    border: 1px solid #235b32;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 12px;
+}
+
+.ai-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.ai-item {
+    background: #101f15;
+    border: 1px solid #315f3e;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.ai-label {
+    font-size: 12px;
+    color: #a9b8ad;
+}
+
+.ai-value {
+    margin-top: 4px;
+    font-weight: bold;
+    color: white;
+}
+
+.ai-details {
+    margin-top: 10px;
+    padding: 12px;
+    background: #101f15;
+    border-radius: 8px;
+    border: 1px solid #315f3e;
+    line-height: 1.5;
+}
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.footer {
+    text-align: center;
+    padding: 25px 10px;
+    color: #607264;
+    font-size: 12px;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 850px) {
+
+    .top-layout {
+        grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+    }
+
+    .sensor-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .map-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .container {
+        padding: 7px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    /*
+       Keep camera LEFT and controls RIGHT
+       even on phone screen.
+    */
+
+    .top-layout {
+        grid-template-columns: 56% 44%;
+        gap: 6px;
+    }
+
+    .card-title {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+    .control-card {
+        padding: 7px;
+    }
+
+    .control-title {
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .dpad {
+        gap: 3px;
+    }
+
+    .dpad button {
+        height: 40px;
+        font-size: 15px;
+    }
+
+    .servo-buttons {
+        gap: 3px;
+    }
+
+    .servo-buttons button {
+        padding: 8px 2px;
+        font-size: 9px;
+    }
+
+    .capture-button {
+        padding: 9px 3px;
+        font-size: 11px;
+    }
+
+    .slider-row label {
+        font-size: 9px;
+    }
+
+    .camera-info {
+        font-size: 9px;
+    }
+
+    #mapCanvas {
+        height: 320px;
+    }
+
+    .sensor-value {
+        font-size: 20px;
+    }
+
+}
+
+/* =====================================================
+   SENDER CAMERA MODE
+===================================================== */
+
+.sender-mode {
+    display: none;
+}
+
+.sender-camera {
+    max-width: 900px;
+    margin: auto;
+}
+
+#localVideo {
+    width: 100%;
+    background: black;
+    display: block;
+}
+
+.sender-controls {
+    padding: 15px;
+    display: grid;
+    gap: 10px;
+}
+
+.sender-controls input {
+    padding: 11px;
+    border-radius: 8px;
+    border: 1px solid #376c45;
+    background: #07110a;
+    color: white;
+}
+
+
+/* =====================================================
+   ROLE SELECTOR
+===================================================== */
+.role-screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:#07110a;
+}
+.role-card{
+    width:100%;
+    max-width:560px;
+    background:#0d1d12;
+    border:1px solid #235b32;
+    border-radius:18px;
+    padding:28px;
+    text-align:center;
+    box-shadow:0 10px 35px rgba(0,0,0,.35);
+}
+.role-card h2{
+    margin:0 0 8px;
+    color:#4cff7a;
+    font-size:28px;
+}
+.role-card p{
+    color:#a9b8ad;
+    margin:0 0 22px;
+}
+.role-buttons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+.role-button{
+    padding:22px 12px;
+    border-radius:14px;
+    background:#174a27;
+    color:white;
+    border:1px solid #39724a;
+    font-size:18px;
+    font-weight:bold;
+}
+.role-button:hover{background:#216e35}
+.role-button .role-icon{display:block;font-size:38px;margin-bottom:8px}
+.role-note{
+    margin-top:18px;
+    font-size:12px;
+    color:#607264;
+}
+.sender-mode{
+    min-height:100vh;
+    padding:20px;
+}
+.sender-card{
+    max-width:900px;
+    margin:0 auto;
+    background:#0d1d12;
+    border:1px solid #235b32;
+    border-radius:16px;
+    overflow:hidden;
+}
+.sender-header{
+    padding:15px;
+    background:#102719;
+    border-bottom:1px solid #235b32;
+    color:#4cff7a;
+    font-weight:bold;
+    text-align:center;
+}
+.sender-video-wrap{
+    background:#000;
+    position:relative;
+}
+.sender-video-wrap video{
+    width:100%;
+    max-height:70vh;
+    object-fit:contain;
+    display:block;
+    background:#000;
+}
+.sender-status{
+    padding:12px;
+    text-align:center;
+    color:#a9b8ad;
+}
+.sender-peer{
+    margin-top:6px;
+    color:#4cff7a;
+    font-weight:bold;
+    word-break:break-all;
+}
+.sender-actions{
+    padding:12px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+.sender-actions button{
+    padding:12px;
+    border-radius:8px;
+    color:white;
+    font-weight:bold;
+    background:#174a27;
+}
+.sender-actions .back-role{background:#8d2020}
+@media(max-width:600px){
+    .role-buttons{grid-template-columns:1fr}
+    .role-card{padding:20px}
+    .role-card h2{font-size:23px}
+    .sender-mode{padding:7px}
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- =====================================================
+     ROLE SELECTION
+===================================================== -->
+<div id="roleScreen" class="role-screen">
+    <div class="role-card">
+        <h2>🌱 GPSAgri</h2>
+        <p>Select how this phone will be used.</p>
+
+        <div class="role-buttons">
+            <button class="role-button" onclick="openTransmitter()">
+                <span class="role-icon">📷</span>
+                TRANSMITTER
+                <small style="display:block;margin-top:6px;color:#a9b8ad;">
+                    Phone 1 • Camera
+                </small>
+            </button>
+
+            <button class="role-button" onclick="openReceiver()">
+                <span class="role-icon">🎮</span>
+                RECEIVER
+                <small style="display:block;margin-top:6px;color:#a9b8ad;">
+                    Phone 2 • Control
+                </small>
+            </button>
+        </div>
+
+        <div class="role-note">
+            Transmitter = overhead agriculture camera<br>
+            Receiver = live camera + vehicle control dashboard
+        </div>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     TRANSMITTER / PHONE 1 CAMERA MODE
+===================================================== -->
+<div id="transmitterMode" class="sender-mode" style="display:none;">
+    <div class="sender-card">
+        <div class="sender-header">📷 GPSAgri TRANSMITTER — PHONE 1 OVERHEAD CAMERA</div>
+
+        <div class="sender-video-wrap">
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+
+        <div class="sender-status">
+            <div id="senderStatus">Starting camera...</div>
+            <div class="sender-peer">
+                My Camera Peer ID:
+                <span id="senderPeerId">Connecting...</span>
+            </div>
+        </div>
+
+        <div class="sender-actions">
+            <button onclick="copySenderPeerId()">📋 COPY PEER ID</button>
+            <button class="back-role" onclick="backToRoleSelection()">↩ CHANGE ROLE</button>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<div id="mainHeader" class="header" style="display:none;">
+
+    <h1>🌱 GPSAgri Dashboard</h1>
+
+    <p>
+        Agriculture Monitoring & Vehicle Control
+    </p>
+
+</div>
+
+
+<div id="receiverDashboard" class="container">
+
+
+<!-- =====================================================
+     MODE / CONNECTION
+===================================================== -->
+
+<div class="connection-panel">
+
+    <div class="connection-row">
+
+        <input
+            id="cameraId"
+            placeholder="Enter Phone 1 Camera Peer ID"
+        >
+
+        <button
+            class="green-button"
+            onclick="connectCamera()"
+        >
+            📹 CONNECT CAMERA
+        </button>
+
+        <button
+            class="green-button"
+            onclick="copyPeerId()"
+        >
+            COPY MY ID
+        </button>
+
+    </div>
+
+    <div class="status">
+
+        My Peer ID:
+        <span id="myPeerId">Connecting...</span>
+
+        |
+        Status:
+        <span id="status">STARTING...</span>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     TOP: CAMERA LEFT / CONTROL RIGHT
+===================================================== -->
+
+<div class="top-layout">
+
+
+<!-- =====================================================
+     LEFT: PHONE 1 LIVE CAMERA
+===================================================== -->
+
+<div class="card camera-card">
+
+    <div class="card-title">
+
+        📹 PHONE 1 — LIVE AGRICULTURE CAMERA
+
+    </div>
+
+    <div class="camera-wrapper">
+
+        <video id="remoteVideo" autoplay playsinline></video>
+
+        <div id="pathCanvasLayer" class="camera-path-layer">
+            <canvas id="pathCanvas"></canvas>
+        </div>
+
+        <div class="camera-center-line"></div>
+        <div class="camera-horizontal-line"></div>
+        <div class="camera-crosshair"></div>
+
+        <div class="path-hint">✏️ DRAW ROUTE ON LIVE CAMERA</div>
+        <div id="pathFollowIndicator" class="path-follow-indicator">PATH FOLLOW: OFF</div>
+    </div>
+
+    <div class="path-toolbar">
+        <button onclick="enableLivePathDrawing()">✏️ DRAW PATH</button>
+        <button class="path-start" onclick="startPathFollow()">▶ START PATH</button>
+        <button class="path-stop" onclick="stopPathFollow()">🛑 STOP PATH</button>
+        <button class="path-clear" onclick="clearLivePath()">🗑 CLEAR</button>
+    </div>
+
+    <div class="path-status">
+        <b>Route:</b>
+        <span id="livePathStatus">Connect Phone 1, then tap DRAW PATH and draw directly over the live field camera.</span>
+    </div>
+
+    <div class="camera-info">
+
+        <span>
+            Camera:
+            <b id="cameraStatus">OFFLINE</b>
+        </span>
+
+        <span>
+            Steering:
+            <b id="steeringDisplay">0.00</b>
+        </span>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     RIGHT: CONTROLS
+===================================================== -->
+
+<div class="control-column">
+
+
+<!-- MANUAL CONTROL -->
+
+<div class="control-card">
+
+    <div class="control-title">
+        🎮 MANUAL VEHICLE CONTROL
+    </div>
+
+    <div class="dpad">
+
+        <div class="dpad-empty"></div>
+
+        <button
+            data-command="forward"
+        >
+            ▲
+        </button>
+
+        <div class="dpad-empty"></div>
+
+
+        <button
+            data-command="left"
+        >
+            ◀
+        </button>
+
+        <button
+            class="stop-button"
+            data-command="stop"
+        >
+            STOP
+        </button>
+
+        <button
+            data-command="right"
+        >
+            ▶
+        </button>
+
+
+        <div class="dpad-empty"></div>
+
+        <button
+            data-command="back"
+        >
+            ▼
+        </button>
+
+        <div class="dpad-empty"></div>
+
+    </div>
+
+
+    <div class="slider-row">
+
+        <label>
+
+            <span>Motor Speed</span>
+
+            <span>
+                <b id="speedValue">180</b>
+            </span>
+
+        </label>
+
+        <input
+            id="speedSlider"
+            type="range"
+            min="50"
+            max="255"
+            value="180"
+        >
+
+    </div>
+
+
+    <div class="slider-row">
+
+        <label>
+
+            <span>Steering Sensitivity</span>
+
+            <span>
+                <b id="sensitivityValue">1.00</b>
+            </span>
+
+        </label>
+
+        <input
+            id="sensitivitySlider"
+            type="range"
+            min="0.2"
+            max="2"
+            value="1"
+            step="0.05"
+        >
+
+    </div>
+
+</div>
+
+
+<!-- SERVO -->
+
+<div class="control-card">
+
+    <div class="control-title">
+        ⚙️ SERVO CONTROL
+    </div>
+
+    <div class="servo-buttons">
+
+        <button onclick="servoUp()">
+            UP
+        </button>
+
+        <button onclick="servoHold()">
+            HOLD
+        </button>
+
+        <button onclick="servoDown()">
+            DOWN
+        </button>
+
+    </div>
+
+
+    <div class="servo-position">
+
+        <div class="slider-row">
+
+            <label>
+
+                <span>Servo Position</span>
+
+                <span>
+                    <b id="servoValue">10°</b>
+                </span>
+
+            </label>
+
+            <input
+                id="servoSlider"
+                type="range"
+                min="0"
+                max="180"
+                value="10"
+                step="1"
+            >
+
+        </div>
+
+        <button
+            class="servo-set"
+            onclick="setServoPosition()"
+        >
+            SET SERVO POSITION
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ESP32-CAM -->
+
+<div class="control-card">
+
+    <div class="control-title">
+        📸 ESP32-CAM
+    </div>
+
+    <button
+        class="capture-button"
+        onclick="captureImage()"
+    >
+        📸 CAPTURE IMAGE
+    </button>
+
+    <div
+        id="captureStatus"
+        style="
+            text-align:center;
+            margin-top:8px;
+            font-size:11px;
+            color:#a9b8ad;
+        "
+    >
+        Ready
+    </div>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     SENSOR READINGS
+===================================================== -->
+
+<div class="section">
+
+    <div class="section-header">
+        🌡️ SENSOR READINGS
+    </div>
+
+    <div class="sensor-grid">
+
+
+        <div class="sensor-box">
+
+            <div class="sensor-name">
+                Temperature
+            </div>
+
+            <div
+                class="sensor-value"
+                id="temperature"
+            >
+                -- 
+            </div>
+
+            <div class="sensor-unit">
+                °C
+            </div>
+
+        </div>
+
+
+        <div class="sensor-box">
+
+            <div class="sensor-name">
+                Humidity
+            </div>
+
+            <div
+                class="sensor-value"
+                id="humidity"
+            >
+                --
+            </div>
+
+            <div class="sensor-unit">
+                %
+            </div>
+
+        </div>
+
+
+        <div class="sensor-box">
+
+            <div class="sensor-name">
+                Soil Moisture
+            </div>
+
+            <div
+                class="sensor-value"
+                id="soil"
+            >
+                --
+            </div>
+
+            <div class="sensor-unit">
+                %
+            </div>
+
+        </div>
+
+
+        <div class="sensor-box">
+
+            <div class="sensor-name">
+                Air Quality
+            </div>
+
+            <div
+                class="sensor-value"
+                id="airQuality"
+            >
+                --
+            </div>
+
+            <div class="sensor-unit">
+                MQ135
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     ESP32-CAM IMAGE
+===================================================== -->
+
+<div class="section">
+
+    <div class="section-header">
+        📸 ESP32-CAM CAPTURED IMAGE
+    </div>
+
+    <div class="image-card">
+
+        <div
+            id="noImage"
+            class="no-image"
+        >
+            No image captured yet.
+        </div>
+
+        <img
+            id="capturedImage"
+            alt="ESP32-CAM captured image"
+        >
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     GEMINI AI
+===================================================== -->
+
+<div class="section">
+
+    <div class="section-header">
+        🤖 GEMINI AI PLANT ANALYSIS
+    </div>
+
+    <div class="ai-card">
+
+
+        <div class="ai-grid">
+
+
+            <div class="ai-item">
+
+                <div class="ai-label">
+                    Plant Name
+                </div>
+
+                <div
+                    class="ai-value"
+                    id="plantName"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="ai-item">
+
+                <div class="ai-label">
+                    Condition
+                </div>
+
+                <div
+                    class="ai-value"
+                    id="condition"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="ai-item">
+
+                <div class="ai-label">
+                    Disease
+                </div>
+
+                <div
+                    class="ai-value"
+                    id="disease"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="ai-item">
+
+                <div class="ai-label">
+                    Confidence
+                </div>
+
+                <div
+                    class="ai-value"
+                    id="confidence"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="ai-item">
+
+                <div class="ai-label">
+                    Healthy
+                </div>
+
+                <div
+                    class="ai-value"
+                    id="healthy"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="ai-item">
+
+                <div class="ai-label">
+                    Affected
+                </div>
+
+                <div
+                    class="ai-value"
+                    id="affected"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="ai-details">
+
+            <div class="ai-label">
+                AI Details
+            </div>
+
+            <div
+                class="ai-value"
+                id="aiDetails"
+            >
+                Waiting for Gemini analysis...
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<div class="footer">
+
+    GPSAgri • Live WebRTC Camera • Live Route Mapping • ESP32 • ESP32-CAM • Gemini AI
+
+</div>
+
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   GPSAGRI CONFIGURATION
+===================================================== */
+
+/*
+   CHANGE THESE TWO IP ADDRESSES
+   TO YOUR ACTUAL ESP32 IP ADDRESSES.
+*/
+
+let ESP32_IP =
+    localStorage.getItem("gpsagri_esp32_ip") ||
+    "192.168.1.50";
+
+let ESP32_CAM_IP =
+    localStorage.getItem("gpsagri_cam_ip") ||
+    "192.168.1.60";
+
+
+/* =====================================================
+   PEERJS
+===================================================== */
+
+let peer = null;
+
+let myPeerId = "";
+
+let dataConnection = null;
+
+let currentCall = null;
+
+
+/* =====================================================
+   ROLE / TRANSMITTER STATE
+===================================================== */
+
+let currentRole = "";
+let localStream = null;
+
+function openTransmitter() {
+    currentRole = "transmitter";
+
+    document.getElementById("roleScreen").style.display = "none";
+    document.getElementById("mainHeader").style.display = "none";
+    document.getElementById("receiverDashboard").style.display = "none";
+    document.getElementById("transmitterMode").style.display = "block";
+
+    startTransmitterCamera();
+}
+
+function openReceiver() {
+    currentRole = "receiver";
+
+    document.getElementById("roleScreen").style.display = "none";
+    document.getElementById("mainHeader").style.display = "block";
+    document.getElementById("receiverDashboard").style.display = "block";
+    document.getElementById("transmitterMode").style.display = "none";
+
+    setStatus("RECEIVER READY", "#4cff7a");
+}
+
+function backToRoleSelection() {
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+
+    document.getElementById("localVideo").srcObject = null;
+    document.getElementById("transmitterMode").style.display = "none";
+    document.getElementById("mainHeader").style.display = "none";
+    document.getElementById("receiverDashboard").style.display = "none";
+    document.getElementById("roleScreen").style.display = "flex";
+    currentRole = "";
+}
+
+async function startTransmitterCamera() {
+    const status = document.getElementById("senderStatus");
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        status.textContent = "Camera unavailable. Open this page using HTTPS or localhost.";
+        return;
+    }
+
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        });
+
+        document.getElementById("localVideo").srcObject = localStream;
+        status.textContent = "CAMERA READY — waiting for Receiver...";
+    } catch (error) {
+        console.error("Camera error:", error);
+        status.textContent = "CAMERA ERROR — allow camera permission and reload.";
+    }
+}
+
+function startTransmitterCall(controllerPeerId) {
+    if (!localStream) {
+        document.getElementById("senderStatus").textContent =
+            "Camera is not ready yet.";
+        return;
+    }
+
+    if (currentCall) {
+        try { currentCall.close(); } catch(e) {}
+    }
+
+    currentCall = peer.call(controllerPeerId, localStream);
+
+    document.getElementById("senderStatus").textContent =
+        "LIVE CAMERA — connected to Receiver.";
+
+    currentCall.on("close", function() {
+        document.getElementById("senderStatus").textContent =
+            "CAMERA READY — waiting for Receiver...";
+    });
+
+    currentCall.on("error", function(error) {
+        console.error("Transmitter call error:", error);
+        document.getElementById("senderStatus").textContent =
+            "VIDEO CONNECTION ERROR";
+    });
+}
+
+function copySenderPeerId() {
+    if (!myPeerId) return;
+
+    navigator.clipboard.writeText(myPeerId).then(function() {
+        alert("Camera Peer ID copied!");
+    });
+}
+
+/* =====================================================
+   PEER INITIALIZATION
+===================================================== */
+
+peer = new Peer();
+
+
+peer.on("open", function(id) {
+
+    myPeerId = id;
+
+    document.getElementById(
+        "myPeerId"
+    ).textContent = id;
+
+    const senderPeer = document.getElementById("senderPeerId");
+    if (senderPeer) senderPeer.textContent = id;
+
+    if (currentRole === "transmitter") {
+        document.getElementById("senderStatus").textContent =
+            "CAMERA READY — waiting for Receiver...";
+    } else {
+        setStatus(
+            "PEER READY",
+            "#4cff7a"
+        );
+    }
+
+});
+
+
+/* =====================================================
+   PEER ERROR
+===================================================== */
+
+peer.on("error", function(error) {
+
+    console.log(
+        "PeerJS error:",
+        error
+    );
+
+    setStatus(
+        "PEER ERROR",
+        "#ff3333"
+    );
+
+});
+
+
+/* =====================================================
+   INCOMING DATA CONNECTION
+===================================================== */
+
+peer.on(
+    "connection",
+    function(conn) {
+
+        dataConnection = conn;
+
+        conn.on(
+            "open",
+            function() {
+
+                console.log(
+                    "Data connection opened"
+                );
+
+            }
+        );
+
+        conn.on("data", function(data) {
+            if (data && data.type === "request-video" && data.controllerPeerId) {
+                if (currentRole === "transmitter") {
+                    startTransmitterCall(data.controllerPeerId);
+                }
+            }
+        });
+
+    }
+);
+
+
+/* =====================================================
+   INCOMING VIDEO CALL
+===================================================== */
+
+peer.on(
+    "call",
+    function(call) {
+
+        if (currentRole !== "receiver") {
+            return;
+        }
+
+        currentCall = call;
+
+        call.answer();
+
+        call.on(
+            "stream",
+            function(stream) {
+
+                const video =
+                    document.getElementById(
+                        "remoteVideo"
+                    );
+
+                video.srcObject =
+                    stream;
+
+                video.play()
+                    .catch(() => {});
+
+                document.getElementById(
+                    "cameraStatus"
+                ).textContent =
+                    "LIVE";
+
+                setStatus(
+                    "LIVE CAMERA",
+                    "#4cff7a"
+                );
+
+            }
+        );
+
+        call.on(
+            "close",
+            function() {
+
+                document.getElementById(
+                    "cameraStatus"
+                ).textContent =
+                    "OFFLINE";
+
+                document.getElementById(
+                    "remoteVideo"
+                ).srcObject = null;
+
+                setStatus(
+                    "VIDEO CLOSED",
+                    "#ff9800"
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =====================================================
+   CONNECT TO PHONE 1
+===================================================== */
+
+function connectCamera() {
+
+    const cameraId =
+        document.getElementById(
+            "cameraId"
+        ).value.trim();
+
+
+    if (!cameraId) {
+
+        alert(
+            "Enter Phone 1 Camera Peer ID"
+        );
+
+        return;
+    }
+
+
+    if (!myPeerId) {
+
+        alert(
+            "PeerJS is not ready yet."
+        );
+
+        return;
+    }
+
+
+    dataConnection =
+        peer.connect(cameraId);
+
+
+    dataConnection.on(
+        "open",
+        function() {
+
+            setStatus(
+                "REQUESTING VIDEO",
+                "#ffd740"
+            );
+
+
+            dataConnection.send({
+
+                type:
+                    "request-video",
+
+                controllerPeerId:
+                    myPeerId
+
+            });
+
+        }
+    );
+
+
+    dataConnection.on(
+        "error",
+        function(error) {
+
+            console.log(
+                "Connection error:",
+                error
+            );
+
+            setStatus(
+                "CONNECTION ERROR",
+                "#ff3333"
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   COPY PEER ID
+===================================================== */
+
+function copyPeerId() {
+
+    if (!myPeerId) {
+
+        return;
+    }
+
+    navigator.clipboard
+        .writeText(myPeerId)
+        .then(function() {
+
+            alert(
+                "Peer ID copied!"
+            );
+
+        });
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+function setStatus(
+    text,
+    color
+) {
+
+    const element =
+        document.getElementById(
+            "status"
+        );
+
+    element.textContent =
+        text;
+
+    element.style.color =
+        color;
+
+}
+
+
+/* =====================================================
+   ESP32 REQUEST
+===================================================== */
+
+function esp32Request(
+    path
+) {
+
+    const url =
+        "http://" +
+        ESP32_IP +
+        path +
+        (
+            path.includes("?")
+                ? "&"
+                : "?"
+        ) +
+        "t=" +
+        Date.now();
+
+
+    return fetch(
+        url,
+        {
+            method: "GET",
+            mode: "cors",
+            cache: "no-store"
+        }
+    );
+
+}
+
+
+/* =====================================================
+   MANUAL MOTOR CONTROL
+===================================================== */
+
+let manualTimer = null;
+
+let activeCommand = null;
+
+
+function sendMotorCommand(
+    command
+) {
+
+    activeCommand =
+        command;
+
+
+    esp32Request(
+        "/" + command
+    )
+    .catch(function(error) {
+
+        console.log(
+            "Motor error:",
+            error
+        );
+
+    });
+
+}
+
+
+/* =====================================================
+   KEEP COMMAND ALIVE
+===================================================== */
+
+function startManualCommand(
+    command
+) {
+
+    stopManualTimer();
+
+    activeCommand =
+        command;
+
+    sendMotorCommand(
+        command
+    );
+
+
+    manualTimer =
+        setInterval(
+            function() {
+
+                if (
+                    activeCommand ===
+                    command
+                ) {
+
+                    sendMotorCommand(
+                        command
+                    );
+
+                }
+
+            },
+            300
+        );
+
+}
+
+
+function stopManualTimer() {
+
+    if (manualTimer) {
+
+        clearInterval(
+            manualTimer
+        );
+
+        manualTimer =
+            null;
+
+    }
+
+}
+
+
+function stopVehicle() {
+
+    activeCommand = null;
+    stopManualTimer();
+
+    if (pathFollowEnabled) {
+        pathFollowEnabled = false;
+        if (pathFollowTimer) {
+            clearInterval(pathFollowTimer);
+            pathFollowTimer = null;
+        }
+        document.getElementById("pathFollowIndicator").textContent = "PATH FOLLOW: OFF";
+    }
+
+    esp32Request("/stop").catch(() => {});
+}
+
+
+/* =====================================================
+   D-PAD TOUCH / MOUSE
+===================================================== */
+
+document
+    .querySelectorAll(
+        ".dpad button[data-command]"
+    )
+    .forEach(
+        function(button) {
+
+            const command =
+                button.dataset.command;
+
+
+            button.addEventListener(
+                "pointerdown",
+                function(event) {
+
+                    event.preventDefault();
+
+                    button.setPointerCapture(
+                        event.pointerId
+                    );
+
+
+                    if (
+                        command ===
+                        "stop"
+                    ) {
+
+                        stopVehicle();
+
+                    }
+                    else {
+
+                        startManualCommand(
+                            command
+                        );
+
+                    }
+
+                }
+            );
+
+
+            button.addEventListener(
+                "pointerup",
+                function(event) {
+
+                    event.preventDefault();
+
+                    if (
+                        command !==
+                        "stop"
+                    ) {
+
+                        stopVehicle();
+
+                    }
+
+                }
+            );
+
+
+            button.addEventListener(
+                "pointercancel",
+                function() {
+
+                    if (
+                        command !==
+                        "stop"
+                    ) {
+
+                        stopVehicle();
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+document.addEventListener(
+    "pointerup",
+    function() {
+
+        if (activeCommand) {
+
+            stopVehicle();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   SPEED
+===================================================== */
+
+const speedSlider =
+    document.getElementById(
+        "speedSlider"
+    );
+
+
+speedSlider.addEventListener(
+    "input",
+    function() {
+
+        const value =
+            this.value;
+
+        document.getElementById(
+            "speedValue"
+        ).textContent =
+            value;
+
+
+        esp32Request(
+            "/speed?value=" +
+            encodeURIComponent(
+                value
+            )
+        )
+        .catch(() => {});
+
+    }
+);
+
+
+/* =====================================================
+   STEERING SENSITIVITY
+===================================================== */
+
+const sensitivitySlider =
+    document.getElementById(
+        "sensitivitySlider"
+    );
+
+
+sensitivitySlider.addEventListener(
+    "input",
+    function() {
+
+        const value =
+            this.value;
+
+        document.getElementById(
+            "sensitivityValue"
+        ).textContent =
+            Number(value)
+                .toFixed(2);
+
+
+        esp32Request(
+            "/sensitivity?value=" +
+            encodeURIComponent(
+                value
+            )
+        )
+        .catch(() => {});
+
+    }
+);
+
+
+/* =====================================================
+   SERVO
+===================================================== */
+
+function servoUp() {
+
+    document.getElementById(
+        "servoSlider"
+    ).value = 10;
+
+    updateServoDisplay();
+
+    esp32Request(
+        "/servo_up"
+    )
+    .catch(() => {});
+
+}
+
+
+function servoDown() {
+
+    document.getElementById(
+        "servoSlider"
+    ).value = 100;
+
+    updateServoDisplay();
+
+    esp32Request(
+        "/servo_down"
+    )
+    .catch(() => {});
+
+}
+
+
+function servoHold() {
+
+    esp32Request(
+        "/servo_hold"
+    )
+    .catch(() => {});
+
+}
+
+
+/* =====================================================
+   SERVO SLIDER
+===================================================== */
+
+const servoSlider =
+    document.getElementById(
+        "servoSlider"
+    );
+
+
+servoSlider.addEventListener(
+    "input",
+    function() {
+
+        updateServoDisplay();
+
+    }
+);
+
+
+function updateServoDisplay() {
+
+    document.getElementById(
+        "servoValue"
+    ).textContent =
+        servoSlider.value +
+        "°";
+
+}
+
+
+function setServoPosition() {
+
+    const angle =
+        servoSlider.value;
+
+
+    esp32Request(
+        "/servo?angle=" +
+        encodeURIComponent(
+            angle
+        )
+    )
+    .catch(function(error) {
+
+        console.log(
+            "Servo error:",
+            error
+        );
+
+    });
+
+}
+
+
+/* =====================================================
+   ESP32-CAM CAPTURE
+===================================================== */
+
+function captureImage() {
+
+    const status =
+        document.getElementById(
+            "captureStatus"
+        );
+
+
+    status.textContent =
+        "Capturing...";
+
+
+    const url =
+        "http://" +
+        ESP32_CAM_IP +
+        "/capture?t=" +
+        Date.now();
+
+
+    fetch(
+        url,
+        {
+            method: "GET",
+            mode: "cors",
+            cache: "no-store"
+        }
+    )
+    .then(
+        function(response) {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Capture failed"
+                );
+
+            }
+
+            return response.blob();
+
+        }
+    )
+    .then(
+        function(blob) {
+
+            const image =
+                document.getElementById(
+                    "capturedImage"
+                );
+
+            const noImage =
+                document.getElementById(
+                    "noImage"
+                );
+
+
+            const imageURL =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            image.src =
+                imageURL;
+
+            image.style.display =
+                "block";
+
+            noImage.style.display =
+                "none";
+
+
+            status.textContent =
+                "Image captured";
+
+
+            /*
+               Wait for ESP32-CAM / AI server
+               to update the Gemini result.
+            */
+
+            setTimeout(
+                getAIResult,
+                2500
+            );
+
+        }
+    )
+    .catch(
+        function(error) {
+
+            console.log(
+                "Capture error:",
+                error
+            );
+
+            status.textContent =
+                "Capture failed";
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   SENSOR DATA
+===================================================== */
+
+function getSensorData() {
+
+    esp32Request(
+        "/sensors"
+    )
+    .then(
+        function(response) {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Sensor request failed"
+                );
+
+            }
+
+            return response.json();
+
+        }
+    )
+    .then(
+        function(data) {
+
+            if (
+                data.temperature !==
+                undefined
+            ) {
+
+                document.getElementById(
+                    "temperature"
+                ).textContent =
+                    Number(
+                        data.temperature
+                    ).toFixed(1);
+
+            }
+
+
+            if (
+                data.humidity !==
+                undefined
+            ) {
+
+                document.getElementById(
+                    "humidity"
+                ).textContent =
+                    Number(
+                        data.humidity
+                    ).toFixed(1);
+
+            }
+
+
+            if (
+                data.soil !==
+                undefined
+            ) {
+
+                document.getElementById(
+                    "soil"
+                ).textContent =
+                    data.soil;
+
+            }
+
+
+            if (
+                data.air_quality !==
+                undefined
+            ) {
+
+                document.getElementById(
+                    "airQuality"
+                ).textContent =
+                    data.air_quality;
+
+            }
+
+        }
+    )
+    .catch(
+        function(error) {
+
+            console.log(
+                "Sensor error:",
+                error
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   GEMINI AI RESULT
+===================================================== */
+
+function getAIResult() {
+
+    const url =
+        "http://" +
+        ESP32_CAM_IP +
+        "/ai_result?t=" +
+        Date.now();
+
+
+    fetch(
+        url,
+        {
+            method: "GET",
+            mode: "cors",
+            cache: "no-store"
+        }
+    )
+    .then(
+        function(response) {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "AI result unavailable"
+                );
+
+            }
+
+            return response.json();
+
+        }
+    )
+    .then(
+        function(data) {
+
+            updateAIResult(
+                data
+            );
+
+        }
+    )
+    .catch(
+        function(error) {
+
+            console.log(
+                "AI result:",
+                error
+            );
+
+        }
+    );
+
+}
+
+
+function updateAIResult(
+    data
+) {
+
+    document.getElementById(
+        "plantName"
+    ).textContent =
+        data.plant_name ??
+        "--";
+
+
+    document.getElementById(
+        "condition"
+    ).textContent =
+        data.condition ??
+        "--";
+
+
+    document.getElementById(
+        "disease"
+    ).textContent =
+        data.disease ??
+        "--";
+
+
+    document.getElementById(
+        "confidence"
+    ).textContent =
+        data.confidence !==
+        undefined
+            ? data.confidence + "%"
+            : "--";
+
+
+    document.getElementById(
+        "healthy"
+    ).textContent =
+        data.healthy !==
+        undefined
+            ? data.healthy + "%"
+            : "--";
+
+
+    document.getElementById(
+        "affected"
+    ).textContent =
+        data.affected !==
+        undefined
+            ? data.affected + "%"
+            : "--";
+
+
+    document.getElementById(
+        "aiDetails"
+    ).textContent =
+        data.ai_details ??
+        "No AI details available.";
+
+}
+
+
+/* =====================================================
+   SENSOR AUTO REFRESH
+===================================================== */
+
+getSensorData();
+
+
+setInterval(
+    getSensorData,
+    2000
+);
+
+
+/* =====================================================
+   LIVE CAMERA PATH MAPPING
+===================================================== */
+
+const pathCanvas = document.getElementById("pathCanvas");
+const pathCanvasLayer = document.getElementById("pathCanvasLayer");
+const pathCtx = pathCanvas.getContext("2d");
+
+let livePath = [];
+let drawingLivePath = false;
+let livePathDrawingEnabled = false;
+let pathFollowEnabled = false;
+let pathFollowTimer = null;
+
+const PATH_MIN_POINT_DISTANCE = 0.008;
+const PATH_LOOK_AHEAD_Y = 0.72;
+const PATH_DEADBAND = 0.08;
+
+function resizePathCanvas() {
+    const r = pathCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    pathCanvas.width = Math.max(1, Math.round(r.width * dpr));
+    pathCanvas.height = Math.max(1, Math.round(r.height * dpr));
+    pathCtx.setTransform(dpr,0,0,dpr,0,0);
+    redrawLivePath();
+}
+window.addEventListener("resize", resizePathCanvas);
+setTimeout(resizePathCanvas, 200);
+
+function enableLivePathDrawing() {
+    stopPathFollow();
+    livePath = [];
+    drawingLivePath = false;
+    livePathDrawingEnabled = true;
+    pathCanvasLayer.classList.add("drawing-enabled");
+    redrawLivePath();
+    document.getElementById("livePathStatus").textContent =
+        "DRAW MODE ON — draw the complete route directly on the live camera.";
+    document.getElementById("pathFollowIndicator").textContent = "DRAW MODE: ON";
+}
+
+function addLivePathPoint(event) {
+    const r = pathCanvas.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const x = (event.clientX-r.left)/r.width;
+    const y = (event.clientY-r.top)/r.height;
+    if (x<0 || x>1 || y<0 || y>1) return;
+    const last = livePath[livePath.length-1];
+    if (last && Math.hypot(x-last.x,y-last.y) < PATH_MIN_POINT_DISTANCE) return;
+    livePath.push({x,y});
+    redrawLivePath();
+}
+
+pathCanvas.addEventListener("pointerdown", e => {
+    if (!livePathDrawingEnabled) return;
+    e.preventDefault();
+    drawingLivePath = true;
+    pathCanvas.setPointerCapture(e.pointerId);
+    addLivePathPoint(e);
+});
+pathCanvas.addEventListener("pointermove", e => {
+    if (!drawingLivePath) return;
+    e.preventDefault();
+    addLivePathPoint(e);
+});
+function finishLivePathDrawing() {
+    if (!drawingLivePath) return;
+    drawingLivePath = false;
+    livePathDrawingEnabled = false;
+    pathCanvasLayer.classList.remove("drawing-enabled");
+    redrawLivePath();
+    document.getElementById("livePathStatus").textContent =
+        livePath.length >= 2
+        ? "Route saved on the live camera — tap START PATH to follow it."
+        : "Route too short. Tap DRAW PATH and draw again.";
+    document.getElementById("pathFollowIndicator").textContent =
+        livePath.length >= 2 ? "PATH READY" : "PATH FOLLOW: OFF";
+}
+pathCanvas.addEventListener("pointerup", finishLivePathDrawing);
+pathCanvas.addEventListener("pointercancel", finishLivePathDrawing);
+document.addEventListener("pointerup", finishLivePathDrawing);
+
+function clearLivePath() {
+    stopPathFollow();
+    livePath=[]; drawingLivePath=false; livePathDrawingEnabled=false;
+    pathCanvasLayer.classList.remove("drawing-enabled");
+    redrawLivePath();
+    document.getElementById("livePathStatus").textContent =
+        "Route cleared — tap DRAW PATH to create a new route.";
+    document.getElementById("pathFollowIndicator").textContent = "PATH FOLLOW: OFF";
+}
+
+function redrawLivePath() {
+    const r=pathCanvas.getBoundingClientRect(), w=r.width, h=r.height;
+    if (!w || !h) return;
+    pathCtx.clearRect(0,0,w,h);
+    if (!livePath.length) return;
+
+    pathCtx.beginPath();
+    pathCtx.moveTo(livePath[0].x*w,livePath[0].y*h);
+    for(let i=1;i<livePath.length;i++) pathCtx.lineTo(livePath[i].x*w,livePath[i].y*h);
+    pathCtx.lineWidth=5;
+    pathCtx.strokeStyle="#4cff7a";
+    pathCtx.lineCap="round";
+    pathCtx.lineJoin="round";
+    pathCtx.shadowColor="rgba(0,0,0,.8)";
+    pathCtx.shadowBlur=5;
+    pathCtx.stroke();
+    pathCtx.shadowBlur=0;
+
+    for(let i=0;i<livePath.length;i++){
+        const p=livePath[i];
+        pathCtx.beginPath();
+        pathCtx.arc(p.x*w,p.y*h,i===0?7:3,0,Math.PI*2);
+        pathCtx.fillStyle=i===0?"#ffffff":"#4cff7a";
+        pathCtx.fill();
+    }
+    pathCtx.fillStyle="#ffffff";
+    pathCtx.font="bold 12px Arial";
+    pathCtx.fillText("START",livePath[0].x*w+10,livePath[0].y*h-10);
+}
+
+function startPathFollow() {
+    if (livePath.length < 2) {
+        alert("Draw a route on the live camera first.");
+        return;
+    }
+    livePathDrawingEnabled=false;
+    drawingLivePath=false;
+    pathCanvasLayer.classList.remove("drawing-enabled");
+    pathFollowEnabled=true;
+    document.getElementById("pathFollowIndicator").textContent="PATH FOLLOW: ON";
+    document.getElementById("livePathStatus").textContent="Automatic route following is running.";
+    if(pathFollowTimer) clearInterval(pathFollowTimer);
+    pathFollowTimer=setInterval(updatePathFollowing,150);
+    updatePathFollowing();
+}
+
+function stopPathFollow() {
+    pathFollowEnabled=false;
+    if(pathFollowTimer){clearInterval(pathFollowTimer);pathFollowTimer=null;}
+    esp32Request("/stop").catch(()=>{});
+    document.getElementById("pathFollowIndicator").textContent="PATH FOLLOW: OFF";
+    if(livePath.length>1) document.getElementById("livePathStatus").textContent="Route saved — vehicle stopped.";
+}
+
+function getLookAheadPoint() {
+    if(!livePath.length) return null;
+    let best=livePath[livePath.length-1], bestD=Infinity;
+    for(const p of livePath){
+        const d=Math.abs(p.y-PATH_LOOK_AHEAD_Y);
+        if(d<bestD){bestD=d;best=p;}
+    }
+    return best;
+}
+
+function updatePathFollowing() {
+    if(!pathFollowEnabled) return;
+    const target=getLookAheadPoint();
+    if(!target){stopPathFollow();return;}
+
+    let steering=(target.x-0.5)*2;
+    const sensitivity=Number(document.getElementById("sensitivitySlider").value);
+    steering=Math.max(-1,Math.min(1,steering*sensitivity));
+    if(Math.abs(steering)<PATH_DEADBAND) steering=0;
+
+    document.getElementById("steeringDisplay").textContent=steering.toFixed(2);
+
+    esp32Request("/steer?x="+encodeURIComponent(steering.toFixed(3)))
+        .catch(err=>console.log("Path steering error:",err));
+}
+
+document.getElementById("remoteVideo").addEventListener("emptied",()=> {
+    if(pathFollowEnabled) stopPathFollow();
+});
+document.getElementById("remoteVideo").addEventListener("error",()=> {
+    if(pathFollowEnabled) stopPathFollow();
+});
+
+/* =====================================================
+   INITIAL SERVO DISPLAY
+===================================================== */
+
+updateServoDisplay();
+
+
+/* =====================================================
+   INITIAL MAP
+===================================================== */
+
+setTimeout(
+    redrawMap,
+    200
+);
+
+
+/* =====================================================
+   KEYBOARD CONTROL
+===================================================== */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.repeat
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            event.key ===
+            "ArrowUp"
+        ) {
+
+            startManualCommand(
+                "forward"
+            );
+
+        }
+
+
+        else if (
+            event.key ===
+            "ArrowDown"
+        ) {
+
+            startManualCommand(
+                "back"
+            );
+
+        }
+
+
+        else if (
+            event.key ===
+            "ArrowLeft"
+        ) {
+
+            startManualCommand(
+                "left"
+            );
+
+        }
+
+
+        else if (
+            event.key ===
+            "ArrowRight"
+        ) {
+
+            startManualCommand(
+                "right"
+            );
+
+        }
+
+
+        else if (
+            event.key ===
+            " "
+        ) {
+
+            stopVehicle();
+
+        }
+
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    function(event) {
+
+        if (
+            [
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight"
+            ].includes(
+                event.key
+            )
+        ) {
+
+            stopVehicle();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
