@@ -801,65 +801,6 @@ input[type="range"] {
     .sender-mode{padding:7px}
 }
 
-
-/* =====================================================
-   DEVICE IP SETTINGS
-===================================================== */
-.ip-settings-card{
-    background:#0d1d12;
-    border:1px solid #235b32;
-    border-radius:12px;
-    padding:12px;
-    margin-bottom:12px;
-}
-.ip-settings-title{
-    color:#4cff7a;
-    font-weight:bold;
-    margin-bottom:10px;
-}
-.ip-settings-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-}
-.ip-field label{
-    display:block;
-    font-size:12px;
-    color:#a9b8ad;
-    margin-bottom:5px;
-}
-.ip-field input{
-    width:100%;
-    padding:11px;
-    border-radius:8px;
-    border:1px solid #376c45;
-    background:#07110a;
-    color:white;
-}
-.ip-settings-actions{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-    margin-top:10px;
-}
-.ip-settings-actions button{
-    padding:11px;
-    border-radius:8px;
-    font-weight:bold;
-    color:white;
-    background:#159447;
-}
-.ip-settings-actions .ip-reset{background:#8d2020}
-.ip-settings-status{
-    margin-top:8px;
-    font-size:12px;
-    color:#a9b8ad;
-}
-@media(max-width:600px){
-    .ip-settings-grid{grid-template-columns:1fr}
-    .ip-settings-actions{grid-template-columns:1fr 1fr}
-}
-
 </style>
 
 </head>
@@ -944,32 +885,6 @@ input[type="range"] {
 
 <div id="receiverDashboard" class="container">
 
-
-<!-- =====================================================
-     DEVICE IP SETTINGS
-===================================================== -->
-<div class="ip-settings-card">
-    <div class="ip-settings-title">⚙️ DEVICE IP SETTINGS</div>
-
-    <div class="ip-settings-grid">
-        <div class="ip-field">
-            <label for="esp32IpInput">Vehicle ESP32 IP / Hostname</label>
-            <input id="esp32IpInput" type="text" placeholder="192.168.1.50" autocomplete="off">
-        </div>
-
-        <div class="ip-field">
-            <label for="esp32CamIpInput">ESP32-CAM IP / Hostname</label>
-            <input id="esp32CamIpInput" type="text" placeholder="192.168.1.60" autocomplete="off">
-        </div>
-    </div>
-
-    <div class="ip-settings-actions">
-        <button onclick="saveDeviceIPs()">💾 SAVE IP ADDRESSES</button>
-        <button class="ip-reset" onclick="resetDeviceIPs()">↺ RESET DEFAULTS</button>
-    </div>
-
-    <div id="ipSettingsStatus" class="ip-settings-status">IP addresses are loaded from this browser.</div>
-</div>
 
 <!-- =====================================================
      MODE / CONNECTION
@@ -1580,63 +1495,6 @@ let ESP32_IP =
 let ESP32_CAM_IP =
     localStorage.getItem("gpsagri_cam_ip") ||
     "192.168.1.60";
-
-
-/* =====================================================
-   DEVICE IP SETTINGS
-   Saved in this browser until the user changes them.
-===================================================== */
-function cleanDeviceAddress(value) {
-    return String(value || "")
-        .trim()
-        .replace(/^https?:\/\//i, "")
-        .replace(/\/$/, "");
-}
-
-function loadDeviceIPsIntoForm() {
-    const esp32Input = document.getElementById("esp32IpInput");
-    const camInput = document.getElementById("esp32CamIpInput");
-    if (esp32Input) esp32Input.value = ESP32_IP;
-    if (camInput) camInput.value = ESP32_CAM_IP;
-}
-
-function saveDeviceIPs() {
-    const esp32Input = document.getElementById("esp32IpInput");
-    const camInput = document.getElementById("esp32CamIpInput");
-
-    const newESP32IP = cleanDeviceAddress(esp32Input.value);
-    const newESP32CAMIP = cleanDeviceAddress(camInput.value);
-
-    if (!newESP32IP || !newESP32CAMIP) {
-        document.getElementById("ipSettingsStatus").textContent =
-            "Please enter both device IP addresses.";
-        return;
-    }
-
-    ESP32_IP = newESP32IP;
-    ESP32_CAM_IP = newESP32CAMIP;
-
-    localStorage.setItem("gpsagri_esp32_ip", ESP32_IP);
-    localStorage.setItem("gpsagri_cam_ip", ESP32_CAM_IP);
-
-    loadDeviceIPsIntoForm();
-
-    document.getElementById("ipSettingsStatus").textContent =
-        "✅ Saved. These IP addresses will remain saved in this browser until you change them.";
-}
-
-function resetDeviceIPs() {
-    ESP32_IP = "192.168.1.50";
-    ESP32_CAM_IP = "192.168.1.60";
-
-    localStorage.setItem("gpsagri_esp32_ip", ESP32_IP);
-    localStorage.setItem("gpsagri_cam_ip", ESP32_CAM_IP);
-
-    loadDeviceIPsIntoForm();
-
-    document.getElementById("ipSettingsStatus").textContent =
-        "↺ Default IP addresses restored and saved.";
-}
 
 
 /* =====================================================
@@ -2451,107 +2309,54 @@ function setServoPosition() {
 ===================================================== */
 
 function captureImage() {
+    const status = document.getElementById("captureStatus");
+    status.textContent = "Capturing image...";
 
-    const status =
-        document.getElementById(
-            "captureStatus"
-        );
+    const url = "http://" + ESP32_CAM_IP + "/capture?t=" + Date.now();
 
-
-    status.textContent =
-        "Capturing...";
-
-
-    const url =
-        "http://" +
-        ESP32_CAM_IP +
-        "/capture?t=" +
-        Date.now();
-
-
-    fetch(
-        url,
-        {
-            method: "GET",
-            mode: "cors",
-            cache: "no-store"
+    fetch(url, {
+        method: "GET",
+        mode: "cors",
+        cache: "no-store"
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(body) {
+                let message = "Capture failed (" + response.status + ")";
+                try {
+                    const errorData = JSON.parse(body);
+                    if (errorData.error) message = errorData.error;
+                } catch (e) {}
+                throw new Error(message);
+            });
         }
-    )
-    .then(
-        function(response) {
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "Capture failed"
-                );
-
-            }
-
-            return response.blob();
-
+        return response.blob();
+    })
+    .then(function(blob) {
+        if (!blob || blob.size === 0 || !blob.type.includes("image")) {
+            throw new Error("ESP32-CAM returned an empty or invalid image.");
         }
-    )
-    .then(
-        function(blob) {
 
-            const image =
-                document.getElementById(
-                    "capturedImage"
-                );
+        const image = document.getElementById("capturedImage");
+        const noImage = document.getElementById("noImage");
 
-            const noImage =
-                document.getElementById(
-                    "noImage"
-                );
-
-
-            const imageURL =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            image.src =
-                imageURL;
-
-            image.style.display =
-                "block";
-
-            noImage.style.display =
-                "none";
-
-
-            status.textContent =
-                "Image captured";
-
-
-            /*
-               Wait for ESP32-CAM / AI server
-               to update the Gemini result.
-            */
-
-            setTimeout(
-                getAIResult,
-                2500
-            );
-
+        if (image.dataset.objectUrl) {
+            URL.revokeObjectURL(image.dataset.objectUrl);
         }
-    )
-    .catch(
-        function(error) {
 
-            console.log(
-                "Capture error:",
-                error
-            );
+        const imageURL = URL.createObjectURL(blob);
+        image.dataset.objectUrl = imageURL;
+        image.src = imageURL;
+        image.style.display = "block";
+        noImage.style.display = "none";
 
-            status.textContent =
-                "Capture failed";
-
-        }
-    );
-
+        status.textContent = "Image received. Gemini is analyzing in the background...";
+        getAIResult(0);
+    })
+    .catch(function(error) {
+        console.log("Capture error:", error);
+        status.textContent = "Capture failed: " + error.message;
+    });
 }
 
 
@@ -2657,119 +2462,79 @@ function getSensorData() {
    GEMINI AI RESULT
 ===================================================== */
 
-function getAIResult() {
+function getAIResult(attempt) {
+    attempt = Number.isFinite(attempt) ? attempt : 0;
 
-    const url =
-        "http://" +
-        ESP32_CAM_IP +
-        "/ai_result?t=" +
-        Date.now();
+    const url = "http://" + ESP32_CAM_IP + "/ai_result?t=" + Date.now();
 
-
-    fetch(
-        url,
-        {
-            method: "GET",
-            mode: "cors",
-            cache: "no-store"
+    fetch(url, {
+        method: "GET",
+        mode: "cors",
+        cache: "no-store"
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error("AI result unavailable (" + response.status + ")");
         }
-    )
-    .then(
-        function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        updateAIResult(data);
 
-            if (!response.ok) {
+        const status = document.getElementById("captureStatus");
 
-                throw new Error(
-                    "AI result unavailable"
-                );
-
+        if (data.processing === true) {
+            status.textContent = "Image received. Gemini is analyzing... (" +
+                Math.min(attempt + 1, 90) + "s)";
+            if (attempt < 90) {
+                setTimeout(function() {
+                    getAIResult(attempt + 1);
+                }, 1000);
+            } else {
+                status.textContent = "Image received, but Gemini is taking longer than expected. Check again shortly.";
             }
-
-            return response.json();
-
+            return;
         }
-    )
-    .then(
-        function(data) {
 
-            updateAIResult(
-                data
-            );
-
+        if (data.ai_available) {
+            status.textContent = "Image captured — Gemini analysis complete.";
+        } else {
+            status.textContent = "Image captured. AI result unavailable: " +
+                (data.ai_details || "Please try again later.");
         }
-    )
-    .catch(
-        function(error) {
-
-            console.log(
-                "AI result:",
-                error
-            );
-
+    })
+    .catch(function(error) {
+        console.log("AI result:", error);
+        if (attempt < 90) {
+            setTimeout(function() {
+                getAIResult(attempt + 1);
+            }, 1500);
+        } else {
+            document.getElementById("captureStatus").textContent =
+                "Image captured, but could not retrieve Gemini status. Check the ESP32-CAM connection.";
         }
-    );
-
+    });
 }
 
 
-function updateAIResult(
-    data
-) {
+function updateAIResult(data) {
+    if (data.processing === true) {
+        document.getElementById("aiDetails").textContent =
+            data.ai_details || "Gemini is analyzing the captured image...";
+        return;
+    }
 
-    document.getElementById(
-        "plantName"
-    ).textContent =
-        data.plant_name ??
-        "--";
-
-
-    document.getElementById(
-        "condition"
-    ).textContent =
-        data.condition ??
-        "--";
-
-
-    document.getElementById(
-        "disease"
-    ).textContent =
-        data.disease ??
-        "--";
-
-
-    document.getElementById(
-        "confidence"
-    ).textContent =
-        data.confidence !==
-        undefined
-            ? data.confidence + "%"
-            : "--";
-
-
-    document.getElementById(
-        "healthy"
-    ).textContent =
-        data.healthy !==
-        undefined
-            ? data.healthy + "%"
-            : "--";
-
-
-    document.getElementById(
-        "affected"
-    ).textContent =
-        data.affected !==
-        undefined
-            ? data.affected + "%"
-            : "--";
-
-
-    document.getElementById(
-        "aiDetails"
-    ).textContent =
-        data.ai_details ??
-        "No AI details available.";
-
+    document.getElementById("plantName").textContent = data.plant_name ?? "--";
+    document.getElementById("condition").textContent = data.condition ?? "--";
+    document.getElementById("disease").textContent = data.disease ?? "--";
+    document.getElementById("confidence").textContent =
+        data.confidence !== undefined ? data.confidence + "%" : "--";
+    document.getElementById("healthy").textContent =
+        data.healthy !== undefined ? data.healthy + "%" : "--";
+    document.getElementById("affected").textContent =
+        data.affected !== undefined ? data.affected + "%" : "--";
+    document.getElementById("aiDetails").textContent =
+        data.ai_details ?? "No AI details available.";
 }
 
 
@@ -2964,13 +2729,6 @@ document.getElementById("remoteVideo").addEventListener("emptied",()=> {
 document.getElementById("remoteVideo").addEventListener("error",()=> {
     if(pathFollowEnabled) stopPathFollow();
 });
-
-/* =====================================================
-   INITIAL DEVICE IP FORM
-===================================================== */
-
-loadDeviceIPsIntoForm();
-
 
 /* =====================================================
    INITIAL SERVO DISPLAY
