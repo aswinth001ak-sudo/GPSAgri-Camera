@@ -79,80 +79,6 @@ button {
 /* =====================================================
    CONNECTION PANEL
 ===================================================== */
-/* =====================================================
-   DEVICE IP SETTINGS
-===================================================== */
-
-.ip-settings {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #235b32;
-}
-
-.ip-settings summary {
-    cursor: pointer;
-    color: #4cff7a;
-    font-weight: bold;
-    padding: 6px 0;
-    user-select: none;
-}
-
-.ip-settings-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.ip-field label {
-    display: block;
-    color: #a9b8ad;
-    font-size: 12px;
-    margin-bottom: 4px;
-}
-
-.ip-field input {
-    width: 100%;
-    min-width: 0;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #376c45;
-    background: #07110a;
-    color: white;
-}
-
-.ip-settings-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-}
-
-.ip-settings-actions button {
-    flex: 1;
-    min-width: 150px;
-    padding: 10px;
-    border-radius: 8px;
-    background: #159447;
-    color: white;
-    font-weight: bold;
-}
-
-.ip-settings-actions .ip-reset {
-    background: #5b3820;
-}
-
-.ip-settings-status {
-    margin-top: 7px;
-    color: #a9b8ad;
-    font-size: 11px;
-}
-
-@media(max-width:600px) {
-    .ip-settings-grid {
-        grid-template-columns: 1fr;
-    }
-}
 
 .connection-panel {
     background: #0d1d12;
@@ -875,6 +801,65 @@ input[type="range"] {
     .sender-mode{padding:7px}
 }
 
+
+/* =====================================================
+   DEVICE IP SETTINGS
+===================================================== */
+.ip-settings-card{
+    background:#0d1d12;
+    border:1px solid #235b32;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:12px;
+}
+.ip-settings-title{
+    color:#4cff7a;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+.ip-settings-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+.ip-field label{
+    display:block;
+    font-size:12px;
+    color:#a9b8ad;
+    margin-bottom:5px;
+}
+.ip-field input{
+    width:100%;
+    padding:11px;
+    border-radius:8px;
+    border:1px solid #376c45;
+    background:#07110a;
+    color:white;
+}
+.ip-settings-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:10px;
+}
+.ip-settings-actions button{
+    padding:11px;
+    border-radius:8px;
+    font-weight:bold;
+    color:white;
+    background:#159447;
+}
+.ip-settings-actions .ip-reset{background:#8d2020}
+.ip-settings-status{
+    margin-top:8px;
+    font-size:12px;
+    color:#a9b8ad;
+}
+@media(max-width:600px){
+    .ip-settings-grid{grid-template-columns:1fr}
+    .ip-settings-actions{grid-template-columns:1fr 1fr}
+}
+
 </style>
 
 </head>
@@ -957,8 +942,34 @@ input[type="range"] {
 </div>
 
 
-<div id="receiverDashboard" class="container">
+<div id="receiverDashboard" class="container" style="display:none;">
 
+
+<!-- =====================================================
+     DEVICE IP SETTINGS
+===================================================== -->
+<div class="ip-settings-card">
+    <div class="ip-settings-title">⚙️ DEVICE IP SETTINGS</div>
+
+    <div class="ip-settings-grid">
+        <div class="ip-field">
+            <label for="esp32IpInput">Vehicle ESP32 IP / Hostname</label>
+            <input id="esp32IpInput" type="text" placeholder="192.168.1.50" autocomplete="off">
+        </div>
+
+        <div class="ip-field">
+            <label for="esp32CamIpInput">ESP32-CAM IP / Hostname</label>
+            <input id="esp32CamIpInput" type="text" placeholder="192.168.1.60" autocomplete="off">
+        </div>
+    </div>
+
+    <div class="ip-settings-actions">
+        <button onclick="saveDeviceIPs()">💾 SAVE IP ADDRESSES</button>
+        <button class="ip-reset" onclick="resetDeviceIPs()">↺ RESET DEFAULTS</button>
+    </div>
+
+    <div id="ipSettingsStatus" class="ip-settings-status">IP addresses are loaded from this browser.</div>
+</div>
 
 <!-- =====================================================
      MODE / CONNECTION
@@ -999,37 +1010,6 @@ input[type="range"] {
         <span id="status">STARTING...</span>
 
     </div>
-
-    <details class="ip-settings">
-        <summary>⚙️ DEVICE IP SETTINGS</summary>
-
-        <div class="ip-settings-grid">
-            <div class="ip-field">
-                <label for="esp32IpInput">Vehicle ESP32 IP / Hostname</label>
-                <input id="esp32IpInput"
-                       type="text"
-                       placeholder="192.168.1.50"
-                       autocomplete="off">
-            </div>
-
-            <div class="ip-field">
-                <label for="esp32CamIpInput">ESP32-CAM IP / Hostname</label>
-                <input id="esp32CamIpInput"
-                       type="text"
-                       placeholder="192.168.1.60"
-                       autocomplete="off">
-            </div>
-        </div>
-
-        <div class="ip-settings-actions">
-            <button type="button" onclick="saveDeviceIPs()">💾 SAVE IP ADDRESSES</button>
-            <button type="button" class="ip-reset" onclick="resetDeviceIPs()">↺ RESET DEFAULTS</button>
-        </div>
-
-        <div id="ipSettingsStatus" class="ip-settings-status">
-            IP addresses are loaded from this browser.
-        </div>
-    </details>
 
 </div>
 
@@ -1604,19 +1584,18 @@ let ESP32_CAM_IP =
 
 /* =====================================================
    DEVICE IP SETTINGS
+   Saved in this browser until the user changes them.
 ===================================================== */
-
 function cleanDeviceAddress(value) {
     return String(value || "")
         .trim()
-        .replace(/^https?:\\/\\//i, "")
-        .replace(/\\/$/, "");
+        .replace(/^https?:\/\//i, "")
+        .replace(/\/$/, "");
 }
 
 function loadDeviceIPsIntoForm() {
     const esp32Input = document.getElementById("esp32IpInput");
     const camInput = document.getElementById("esp32CamIpInput");
-
     if (esp32Input) esp32Input.value = ESP32_IP;
     if (camInput) camInput.value = ESP32_CAM_IP;
 }
@@ -1624,13 +1603,13 @@ function loadDeviceIPsIntoForm() {
 function saveDeviceIPs() {
     const esp32Input = document.getElementById("esp32IpInput");
     const camInput = document.getElementById("esp32CamIpInput");
-    const status = document.getElementById("ipSettingsStatus");
 
-    const newESP32IP = cleanDeviceAddress(esp32Input ? esp32Input.value : "");
-    const newESP32CAMIP = cleanDeviceAddress(camInput ? camInput.value : "");
+    const newESP32IP = cleanDeviceAddress(esp32Input.value);
+    const newESP32CAMIP = cleanDeviceAddress(camInput.value);
 
     if (!newESP32IP || !newESP32CAMIP) {
-        if (status) status.textContent = "❌ Please enter both device addresses.";
+        document.getElementById("ipSettingsStatus").textContent =
+            "Please enter both device IP addresses.";
         return;
     }
 
@@ -1642,11 +1621,8 @@ function saveDeviceIPs() {
 
     loadDeviceIPsIntoForm();
 
-    if (status) {
-        status.textContent =
-            "✅ Saved. Vehicle ESP32: " + ESP32_IP +
-            " | ESP32-CAM: " + ESP32_CAM_IP;
-    }
+    document.getElementById("ipSettingsStatus").textContent =
+        "✅ Saved. These IP addresses will remain saved in this browser until you change them.";
 }
 
 function resetDeviceIPs() {
@@ -1658,8 +1634,8 @@ function resetDeviceIPs() {
 
     loadDeviceIPsIntoForm();
 
-    const status = document.getElementById("ipSettingsStatus");
-    if (status) status.textContent = "↺ Default IP addresses restored and saved.";
+    document.getElementById("ipSettingsStatus").textContent =
+        "↺ Default IP addresses restored and saved.";
 }
 
 
@@ -1686,11 +1662,17 @@ let localStream = null;
 function openTransmitter() {
     currentRole = "transmitter";
 
+    // Hide role selector and receiver completely.
     document.getElementById("roleScreen").style.display = "none";
     document.getElementById("mainHeader").style.display = "none";
     document.getElementById("receiverDashboard").style.display = "none";
     document.getElementById("transmitterMode").style.display = "block";
 
+    // Show the transmitter screen immediately, even if PeerJS/camera takes time.
+    const status = document.getElementById("senderStatus");
+    if (status) status.textContent = "Starting transmitter...";
+
+    initializePeerForCurrentRole();
     startTransmitterCamera();
 }
 
@@ -1702,7 +1684,7 @@ function openReceiver() {
     document.getElementById("receiverDashboard").style.display = "block";
     document.getElementById("transmitterMode").style.display = "none";
 
-    loadDeviceIPsIntoForm();
+    initializePeerForCurrentRole();
     setStatus("RECEIVER READY", "#4cff7a");
 }
 
@@ -1712,11 +1694,24 @@ function backToRoleSelection() {
         localStream = null;
     }
 
+    if (currentCall) {
+        try { currentCall.close(); } catch (e) {}
+        currentCall = null;
+    }
+
+    if (dataConnection) {
+        try { dataConnection.close(); } catch (e) {}
+        dataConnection = null;
+    }
+
     document.getElementById("localVideo").srcObject = null;
+    document.getElementById("remoteVideo").srcObject = null;
+
     document.getElementById("transmitterMode").style.display = "none";
     document.getElementById("mainHeader").style.display = "none";
     document.getElementById("receiverDashboard").style.display = "none";
     document.getElementById("roleScreen").style.display = "flex";
+
     currentRole = "";
 }
 
@@ -1753,6 +1748,13 @@ function startTransmitterCall(controllerPeerId) {
         return;
     }
 
+    if (!peer || peer.destroyed) {
+        document.getElementById("senderStatus").textContent =
+            "PeerJS is not ready yet.";
+        initializePeerForCurrentRole();
+        return;
+    }
+
     if (currentCall) {
         try { currentCall.close(); } catch(e) {}
     }
@@ -1775,170 +1777,160 @@ function startTransmitterCall(controllerPeerId) {
 }
 
 function copySenderPeerId() {
-    if (!myPeerId) return;
+    if (!myPeerId) {
+        alert("Peer ID is not ready yet.");
+        return;
+    }
 
-    navigator.clipboard.writeText(myPeerId).then(function() {
-        alert("Camera Peer ID copied!");
-    });
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(myPeerId).then(function() {
+            alert("Camera Peer ID copied!");
+        }).catch(function() {
+            prompt("Copy Camera Peer ID:", myPeerId);
+        });
+    } else {
+        prompt("Copy Camera Peer ID:", myPeerId);
+    }
 }
 
 /* =====================================================
    PEER INITIALIZATION
 ===================================================== */
 
-peer = new Peer();
-
-
-peer.on("open", function(id) {
-
-    myPeerId = id;
-
-    document.getElementById(
-        "myPeerId"
-    ).textContent = id;
-
-    const senderPeer = document.getElementById("senderPeerId");
-    if (senderPeer) senderPeer.textContent = id;
-
-    if (currentRole === "transmitter") {
-        document.getElementById("senderStatus").textContent =
-            "CAMERA READY — waiting for Receiver...";
-    } else {
-        setStatus(
-            "PEER READY",
-            "#4cff7a"
-        );
+function initializePeerForCurrentRole() {
+    if (peer && !peer.destroyed) {
+        return;
     }
 
-});
+    // PeerJS script may fail to load on a network/browser. Do not let that
+    // prevent the transmitter screen or local camera from opening.
+    if (typeof Peer === "undefined") {
+        const message =
+            "PeerJS library is not loaded. Camera can still open, but WebRTC connection needs internet access to load PeerJS.";
 
+        const senderStatus = document.getElementById("senderStatus");
+        if (currentRole === "transmitter" && senderStatus) {
+            senderStatus.textContent = message;
+        }
 
-/* =====================================================
-   PEER ERROR
-===================================================== */
+        if (currentRole === "receiver") {
+            setStatus("PEERJS NOT LOADED", "#ff9800");
+        }
 
-peer.on("error", function(error) {
+        console.error(message);
+        return;
+    }
 
-    console.log(
-        "PeerJS error:",
-        error
-    );
+    peer = new Peer();
 
-    setStatus(
-        "PEER ERROR",
-        "#ff3333"
-    );
+    peer.on("open", function(id) {
+        myPeerId = id;
 
-});
+        const myPeerElement = document.getElementById("myPeerId");
+        if (myPeerElement) {
+            myPeerElement.textContent = id;
+        }
 
+        const senderPeer = document.getElementById("senderPeerId");
+        if (senderPeer) {
+            senderPeer.textContent = id;
+        }
 
-/* =====================================================
-   INCOMING DATA CONNECTION
-===================================================== */
+        if (currentRole === "transmitter") {
+            const senderStatus = document.getElementById("senderStatus");
+            if (senderStatus) {
+                senderStatus.textContent =
+                    "CAMERA READY — waiting for Receiver...";
+            }
+        } else {
+            setStatus("PEER READY", "#4cff7a");
+        }
+    });
 
-peer.on(
-    "connection",
-    function(conn) {
+    peer.on("error", function(error) {
+        console.error("PeerJS error:", error);
 
+        if (currentRole === "transmitter") {
+            const senderStatus = document.getElementById("senderStatus");
+            if (senderStatus) {
+                senderStatus.textContent =
+                    "PEER ERROR — " + (error.type || "connection error");
+            }
+        }
+
+        if (currentRole === "receiver") {
+            setStatus("PEER ERROR", "#ff3333");
+        }
+    });
+
+    peer.on("connection", function(conn) {
         dataConnection = conn;
 
-        conn.on(
-            "open",
-            function() {
-
-                console.log(
-                    "Data connection opened"
-                );
-
-            }
-        );
-
-        conn.on("data", function(data) {
-            if (data && data.type === "request-video" && data.controllerPeerId) {
-                if (currentRole === "transmitter") {
-                    startTransmitterCall(data.controllerPeerId);
-                }
-            }
+        conn.on("open", function() {
+            console.log("Data connection opened");
         });
 
-    }
-);
+        conn.on("data", function(data) {
+            if (
+                data &&
+                data.type === "request-video" &&
+                data.controllerPeerId &&
+                currentRole === "transmitter"
+            ) {
+                startTransmitterCall(data.controllerPeerId);
+            }
+        });
+    });
 
-
-/* =====================================================
-   INCOMING VIDEO CALL
-===================================================== */
-
-peer.on(
-    "call",
-    function(call) {
-
+    peer.on("call", function(call) {
         if (currentRole !== "receiver") {
             return;
         }
 
         currentCall = call;
-
         call.answer();
 
-        call.on(
-            "stream",
-            function(stream) {
+        call.on("stream", function(stream) {
+            const video = document.getElementById("remoteVideo");
 
-                const video =
-                    document.getElementById(
-                        "remoteVideo"
-                    );
+            video.srcObject = stream;
+            video.play().catch(() => {});
 
-                video.srcObject =
-                    stream;
+            document.getElementById("cameraStatus").textContent = "LIVE";
 
-                video.play()
-                    .catch(() => {});
+            setStatus("LIVE CAMERA", "#4cff7a");
+        });
 
-                document.getElementById(
-                    "cameraStatus"
-                ).textContent =
-                    "LIVE";
+        call.on("close", function() {
+            document.getElementById("cameraStatus").textContent = "OFFLINE";
+            document.getElementById("remoteVideo").srcObject = null;
+            setStatus("VIDEO CLOSED", "#ff9800");
+        });
 
-                setStatus(
-                    "LIVE CAMERA",
-                    "#4cff7a"
-                );
-
-            }
-        );
-
-        call.on(
-            "close",
-            function() {
-
-                document.getElementById(
-                    "cameraStatus"
-                ).textContent =
-                    "OFFLINE";
-
-                document.getElementById(
-                    "remoteVideo"
-                ).srcObject = null;
-
-                setStatus(
-                    "VIDEO CLOSED",
-                    "#ff9800"
-                );
-
-            }
-        );
-
-    }
-);
-
+        call.on("error", function(error) {
+            console.error("Receiver video error:", error);
+            document.getElementById("cameraStatus").textContent = "ERROR";
+            setStatus("VIDEO ERROR", "#ff3333");
+        });
+    });
+}
 
 /* =====================================================
    CONNECT TO PHONE 1
 ===================================================== */
 
 function connectCamera() {
+
+    if (!peer || peer.destroyed) {
+        initializePeerForCurrentRole();
+
+        if (!peer || peer.destroyed) {
+            alert(
+                "PeerJS is not ready. Make sure the phone has internet access and reload the page."
+            );
+            return;
+        }
+    }
 
     const cameraId =
         document.getElementById(
@@ -2476,54 +2468,107 @@ function setServoPosition() {
 ===================================================== */
 
 function captureImage() {
-    const status = document.getElementById("captureStatus");
-    status.textContent = "Capturing image...";
 
-    const url = "http://" + ESP32_CAM_IP + "/capture?t=" + Date.now();
+    const status =
+        document.getElementById(
+            "captureStatus"
+        );
 
-    fetch(url, {
-        method: "GET",
-        mode: "cors",
-        cache: "no-store"
-    })
-    .then(function(response) {
-        if (!response.ok) {
-            return response.text().then(function(body) {
-                let message = "Capture failed (" + response.status + ")";
-                try {
-                    const errorData = JSON.parse(body);
-                    if (errorData.error) message = errorData.error;
-                } catch (e) {}
-                throw new Error(message);
-            });
+
+    status.textContent =
+        "Capturing...";
+
+
+    const url =
+        "http://" +
+        ESP32_CAM_IP +
+        "/capture?t=" +
+        Date.now();
+
+
+    fetch(
+        url,
+        {
+            method: "GET",
+            mode: "cors",
+            cache: "no-store"
         }
-        return response.blob();
-    })
-    .then(function(blob) {
-        if (!blob || blob.size === 0 || !blob.type.includes("image")) {
-            throw new Error("ESP32-CAM returned an empty or invalid image.");
+    )
+    .then(
+        function(response) {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Capture failed"
+                );
+
+            }
+
+            return response.blob();
+
         }
+    )
+    .then(
+        function(blob) {
 
-        const image = document.getElementById("capturedImage");
-        const noImage = document.getElementById("noImage");
+            const image =
+                document.getElementById(
+                    "capturedImage"
+                );
 
-        if (image.dataset.objectUrl) {
-            URL.revokeObjectURL(image.dataset.objectUrl);
+            const noImage =
+                document.getElementById(
+                    "noImage"
+                );
+
+
+            const imageURL =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            image.src =
+                imageURL;
+
+            image.style.display =
+                "block";
+
+            noImage.style.display =
+                "none";
+
+
+            status.textContent =
+                "Image captured";
+
+
+            /*
+               Wait for ESP32-CAM / AI server
+               to update the Gemini result.
+            */
+
+            setTimeout(
+                getAIResult,
+                2500
+            );
+
         }
+    )
+    .catch(
+        function(error) {
 
-        const imageURL = URL.createObjectURL(blob);
-        image.dataset.objectUrl = imageURL;
-        image.src = imageURL;
-        image.style.display = "block";
-        noImage.style.display = "none";
+            console.log(
+                "Capture error:",
+                error
+            );
 
-        status.textContent = "Image received. Gemini is analyzing in the background...";
-        getAIResult(0);
-    })
-    .catch(function(error) {
-        console.log("Capture error:", error);
-        status.textContent = "Capture failed: " + error.message;
-    });
+            status.textContent =
+                "Capture failed";
+
+        }
+    );
+
 }
 
 
@@ -2629,79 +2674,119 @@ function getSensorData() {
    GEMINI AI RESULT
 ===================================================== */
 
-function getAIResult(attempt) {
-    attempt = Number.isFinite(attempt) ? attempt : 0;
+function getAIResult() {
 
-    const url = "http://" + ESP32_CAM_IP + "/ai_result?t=" + Date.now();
+    const url =
+        "http://" +
+        ESP32_CAM_IP +
+        "/ai_result?t=" +
+        Date.now();
 
-    fetch(url, {
-        method: "GET",
-        mode: "cors",
-        cache: "no-store"
-    })
-    .then(function(response) {
-        if (!response.ok) {
-            throw new Error("AI result unavailable (" + response.status + ")");
+
+    fetch(
+        url,
+        {
+            method: "GET",
+            mode: "cors",
+            cache: "no-store"
         }
-        return response.json();
-    })
-    .then(function(data) {
-        updateAIResult(data);
+    )
+    .then(
+        function(response) {
 
-        const status = document.getElementById("captureStatus");
+            if (!response.ok) {
 
-        if (data.processing === true) {
-            status.textContent = "Image received. Gemini is analyzing... (" +
-                Math.min(attempt + 1, 90) + "s)";
-            if (attempt < 90) {
-                setTimeout(function() {
-                    getAIResult(attempt + 1);
-                }, 1000);
-            } else {
-                status.textContent = "Image received, but Gemini is taking longer than expected. Check again shortly.";
+                throw new Error(
+                    "AI result unavailable"
+                );
+
             }
-            return;
-        }
 
-        if (data.ai_available) {
-            status.textContent = "Image captured — Gemini analysis complete.";
-        } else {
-            status.textContent = "Image captured. AI result unavailable: " +
-                (data.ai_details || "Please try again later.");
+            return response.json();
+
         }
-    })
-    .catch(function(error) {
-        console.log("AI result:", error);
-        if (attempt < 90) {
-            setTimeout(function() {
-                getAIResult(attempt + 1);
-            }, 1500);
-        } else {
-            document.getElementById("captureStatus").textContent =
-                "Image captured, but could not retrieve Gemini status. Check the ESP32-CAM connection.";
+    )
+    .then(
+        function(data) {
+
+            updateAIResult(
+                data
+            );
+
         }
-    });
+    )
+    .catch(
+        function(error) {
+
+            console.log(
+                "AI result:",
+                error
+            );
+
+        }
+    );
+
 }
 
 
-function updateAIResult(data) {
-    if (data.processing === true) {
-        document.getElementById("aiDetails").textContent =
-            data.ai_details || "Gemini is analyzing the captured image...";
-        return;
-    }
+function updateAIResult(
+    data
+) {
 
-    document.getElementById("plantName").textContent = data.plant_name ?? "--";
-    document.getElementById("condition").textContent = data.condition ?? "--";
-    document.getElementById("disease").textContent = data.disease ?? "--";
-    document.getElementById("confidence").textContent =
-        data.confidence !== undefined ? data.confidence + "%" : "--";
-    document.getElementById("healthy").textContent =
-        data.healthy !== undefined ? data.healthy + "%" : "--";
-    document.getElementById("affected").textContent =
-        data.affected !== undefined ? data.affected + "%" : "--";
-    document.getElementById("aiDetails").textContent =
-        data.ai_details ?? "No AI details available.";
+    document.getElementById(
+        "plantName"
+    ).textContent =
+        data.plant_name ??
+        "--";
+
+
+    document.getElementById(
+        "condition"
+    ).textContent =
+        data.condition ??
+        "--";
+
+
+    document.getElementById(
+        "disease"
+    ).textContent =
+        data.disease ??
+        "--";
+
+
+    document.getElementById(
+        "confidence"
+    ).textContent =
+        data.confidence !==
+        undefined
+            ? data.confidence + "%"
+            : "--";
+
+
+    document.getElementById(
+        "healthy"
+    ).textContent =
+        data.healthy !==
+        undefined
+            ? data.healthy + "%"
+            : "--";
+
+
+    document.getElementById(
+        "affected"
+    ).textContent =
+        data.affected !==
+        undefined
+            ? data.affected + "%"
+            : "--";
+
+
+    document.getElementById(
+        "aiDetails"
+    ).textContent =
+        data.ai_details ??
+        "No AI details available.";
+
 }
 
 
@@ -2896,6 +2981,13 @@ document.getElementById("remoteVideo").addEventListener("emptied",()=> {
 document.getElementById("remoteVideo").addEventListener("error",()=> {
     if(pathFollowEnabled) stopPathFollow();
 });
+
+/* =====================================================
+   INITIAL DEVICE IP FORM
+===================================================== */
+
+loadDeviceIPsIntoForm();
+
 
 /* =====================================================
    INITIAL SERVO DISPLAY
